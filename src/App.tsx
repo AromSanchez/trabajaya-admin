@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard/Dashboard'
 import Tecnicos from './pages/Tecnicos/Tecnicos'
 import TecnicoDetalle from './pages/TecnicoDetalle/TecnicoDetalle'
 import Reportes from './pages/Reportes/Reportes'
+import ReporteDetalle from './pages/ReporteDetalle/ReporteDetalle'
 import CancelacionesTardias from './pages/CancelacionesTardias/CancelacionesTardias'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/tecnicos" element={<Tecnicos />} />
           <Route path="/tecnicos/:id" element={<TecnicoDetalle />} />
           <Route path="/reportes" element={<Reportes />} />
+          <Route path="/reportes/:id" element={<ReporteDetalle />} />
           <Route
             path="/cancelaciones-tardias"
             element={<CancelacionesTardias />}

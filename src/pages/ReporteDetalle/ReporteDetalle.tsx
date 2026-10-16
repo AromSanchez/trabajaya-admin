@@ -1,0 +1,327 @@
+import { useState } from 'react'
+import type { FormEvent, ReactNode } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import Badge from '../../components/Badge'
+import {
+  ESTADOS_REPORTE_INFO,
+  etiquetaCategoria,
+  etiquetaTipoObjetivo,
+} from '../../components/reportes'
+import {
+  IconAlertTriangle,
+  IconArrowLeft,
+  IconCheckCircle,
+  IconFlag,
+  IconRefresh,
+} from '../../components/icons'
+import { resolverReporte } from '../../services/admin'
+import type { EstadoReporte } from '../../services/admin'
+import { obtenerMensajeError } from '../../services/errors'
+import { useReporteDetalle } from '../../hooks/useReporteDetalle'
+
+const formatoFechaHora = new Intl.DateTimeFormat('es-PE', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+export default function ReporteDetalle() {
+  const { id } = useParams()
+  const { reporte, cargando, error, recargar } = useReporteDetalle(id)
+  const [estadoResolucion, setEstadoResolucion] =
+    useState<Exclude<EstadoReporte, 'pendiente'>>('resuelto')
+  const [nota, setNota] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [errorForm, setErrorForm] = useState<string | null>(null)
+
+  if (cargando) {
+    return (
+      <div className="space-y-5">
+        <div className="h-8 w-44 animate-pulse rounded bg-dark/5" />
+        <div className="h-64 animate-pulse rounded-2xl border border-dark/10 bg-white shadow-sm" />
+      </div>
+    )
+  }
+
+  if (error || !reporte) {
+    return (
+      <div className="space-y-5">
+        <EnlaceVolver />
+        <section className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-danger/20 bg-danger/5 p-5 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger">
+              <IconAlertTriangle className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-dark">
+                No se pudo cargar el reporte
+              </p>
+              <p className="text-sm text-dark/60">
+                {error ?? 'Reporte no encontrado.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={recargar}
+            className="inline-flex items-center gap-2 rounded-lg border border-dark/15 bg-white px-3 py-2 text-sm font-medium text-dark transition hover:bg-dark/5"
+          >
+            <IconRefresh className="h-4 w-4" />
+            Reintentar
+          </button>
+        </section>
+      </div>
+    )
+  }
+
+  const esPendiente = reporte.estado === 'pendiente'
+  const objetivoNombre =
+    reporte.objetivo.nombre ??
+    `${etiquetaTipoObjetivo(reporte.objetivo.tipo)} #${reporte.objetivo.id}`
+
+  async function resolver(evento: FormEvent) {
+    evento.preventDefault()
+    const texto = nota.trim()
+    if (texto.length < 1 || texto.length > 500) {
+      setErrorForm('La nota es obligatoria (entre 1 y 500 caracteres).')
+      return
+    }
+    setEnviando(true)
+    setErrorForm(null)
+    try {
+      await resolverReporte(reporte!.id, {
+        estado: estadoResolucion,
+        nota: texto,
+      })
+      setNota('')
+      recargar()
+    } catch (err) {
+      setErrorForm(obtenerMensajeError(err))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <EnlaceVolver />
+        <button
+          type="button"
+          onClick={recargar}
+          className="inline-flex items-center gap-2 rounded-lg border border-dark/15 bg-white px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+        >
+          <IconRefresh className="h-4 w-4" />
+          Recargar
+        </button>
+      </div>
+
+      <section className="rounded-2xl border border-dark/10 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+              <IconFlag className="h-6 w-6" />
+            </span>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-semibold text-dark">
+                  {objetivoNombre}
+                </h2>
+                <Badge info={ESTADOS_REPORTE_INFO[reporte.estado]} />
+              </div>
+              <p className="mt-0.5 text-sm text-dark/55">
+                Reporte #{reporte.id} ·{' '}
+                {etiquetaTipoObjetivo(reporte.tipoObjetivo)} ·{' '}
+                {etiquetaCategoria(reporte.categoria)}
+              </p>
+            </div>
+          </div>
+          {reporte.objetivo.tipo === 'tecnico' && (
+            <Link
+              to={`/tecnicos/${reporte.objetivo.id}`}
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-dark/15 px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+            >
+              Ver técnico
+            </Link>
+          )}
+        </div>
+
+        <dl className="mt-6 grid gap-4 border-t border-dark/10 pt-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Dato etiqueta="Categoría">
+            {etiquetaCategoria(reporte.categoria)}
+          </Dato>
+          <Dato etiqueta="Tipo de objetivo">
+            {etiquetaTipoObjetivo(reporte.tipoObjetivo)}
+          </Dato>
+          <Dato etiqueta="Servicio">
+            #{reporte.servicio.id} ·{' '}
+            <span className="capitalize">{reporte.servicio.estado}</span>
+          </Dato>
+          <Dato etiqueta="Reportante">
+            {reporte.reportante.nombre}
+            <span className="ml-1 text-xs capitalize text-dark/45">
+              ({reporte.reportante.rol})
+            </span>
+          </Dato>
+          <Dato etiqueta="Creado">
+            {formatoFechaHora.format(new Date(reporte.createdAt))}
+          </Dato>
+          <Dato etiqueta="Actualizado">
+            {formatoFechaHora.format(new Date(reporte.updatedAt))}
+          </Dato>
+        </dl>
+
+        <div className="mt-5 border-t border-dark/10 pt-5">
+          <p className="text-xs uppercase tracking-wide text-dark/45">
+            Comentario del reporte
+          </p>
+          <p className="mt-1 whitespace-pre-line text-sm text-dark/80">
+            {reporte.comentario}
+          </p>
+        </div>
+
+        {reporte.objetivo.tipo === 'resena' && (
+          <div className="mt-5 rounded-xl border border-dark/10 bg-dark/[0.02] p-4">
+            <p className="text-xs uppercase tracking-wide text-dark/45">
+              Reseña reportada
+            </p>
+            {typeof reporte.objetivo.calificacion === 'number' && (
+              <p className="mt-1 text-sm font-medium text-dark">
+                Calificación: {reporte.objetivo.calificacion} / 5
+              </p>
+            )}
+            {reporte.objetivo.comentario && (
+              <p className="mt-1 text-sm text-dark/70">
+                {reporte.objetivo.comentario}
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-dark/10 bg-white p-6 shadow-sm">
+        <h3 className="text-base font-semibold text-dark">Resolución</h3>
+
+        {esPendiente ? (
+          <form onSubmit={resolver} className="mt-4 space-y-4">
+            <div>
+              <p className="mb-2 text-sm font-medium text-dark/70">Decisión</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEstadoResolucion('resuelto')}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                    estadoResolucion === 'resuelto'
+                      ? 'border-success bg-success/10 text-success'
+                      : 'border-dark/15 text-dark/60 hover:bg-dark/5'
+                  }`}
+                >
+                  <IconCheckCircle className="h-4 w-4" />
+                  Resuelto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEstadoResolucion('descartado')}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                    estadoResolucion === 'descartado'
+                      ? 'border-dark bg-dark/10 text-dark'
+                      : 'border-dark/15 text-dark/60 hover:bg-dark/5'
+                  }`}
+                >
+                  <IconFlag className="h-4 w-4" />
+                  Descartado
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="nota-resolucion"
+                className="mb-1.5 block text-sm font-medium text-dark/70"
+              >
+                Nota de resolución
+              </label>
+              <textarea
+                id="nota-resolucion"
+                rows={3}
+                maxLength={500}
+                value={nota}
+                onChange={(evento) => setNota(evento.target.value)}
+                placeholder="Explica cómo se resolvió o por qué se descarta el reporte"
+                className="w-full resize-none rounded-xl border border-dark/15 px-3 py-2 text-sm text-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+              <p className="mt-1 text-right text-xs text-dark/40">
+                {nota.length}/500
+              </p>
+            </div>
+
+            {errorForm && <p className="text-sm text-danger">{errorForm}</p>}
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={enviando}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:opacity-60"
+              >
+                {enviando && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                )}
+                Guardar resolución
+              </button>
+            </div>
+          </form>
+        ) : (
+          <dl className="mt-4 space-y-4">
+            <Dato etiqueta="Estado final">
+              <Badge info={ESTADOS_REPORTE_INFO[reporte.estado]} />
+            </Dato>
+            <Dato etiqueta="Nota">
+              <span className="whitespace-pre-line font-normal text-dark/80">
+                {reporte.notaResolucion ?? '—'}
+              </span>
+            </Dato>
+            <Dato etiqueta="Resuelto por">
+              {reporte.resueltoPor ? reporte.resueltoPor.nombre : '—'}
+            </Dato>
+            <Dato etiqueta="Fecha de resolución">
+              {reporte.resueltoAt
+                ? formatoFechaHora.format(new Date(reporte.resueltoAt))
+                : '—'}
+            </Dato>
+          </dl>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function Dato({
+  etiqueta,
+  children,
+}: {
+  etiqueta: string
+  children: ReactNode
+}) {
+  return (
+    <div>
+      <dt className="text-xs uppercase tracking-wide text-dark/45">
+        {etiqueta}
+      </dt>
+      <dd className="mt-1 text-sm font-medium text-dark">{children}</dd>
+    </div>
+  )
+}
+
+function EnlaceVolver() {
+  return (
+    <Link
+      to="/reportes"
+      className="inline-flex items-center gap-2 text-sm font-medium text-dark/60 transition hover:text-dark"
+    >
+      <IconArrowLeft className="h-4 w-4" />
+      Volver a reportes
+    </Link>
+  )
+}

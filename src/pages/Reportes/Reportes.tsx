@@ -1,10 +1,281 @@
-import EnConstruccion from '../../components/EnConstruccion'
+import { Link, useNavigate } from 'react-router-dom'
+import Badge from '../../components/Badge'
+import {
+  CATEGORIAS_REPORTE,
+  ESTADOS_REPORTE_INFO,
+  TIPOS_OBJETIVO,
+  etiquetaCategoria,
+  etiquetaTipoObjetivo,
+} from '../../components/reportes'
+import {
+  IconAlertTriangle,
+  IconChevronRight,
+  IconFlag,
+  IconRefresh,
+} from '../../components/icons'
+import { useReportes } from '../../hooks/useReportes'
+import type { FiltrosUI } from '../../hooks/useReportes'
+import type { EstadoReporte } from '../../services/admin'
+
+const formatoFecha = new Intl.DateTimeFormat('es-PE', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+})
+
+const ESTADOS_CHIPS: { valor: FiltrosUI['estado']; label: string }[] = [
+  { valor: 'todos', label: 'Todos' },
+  { valor: 'pendiente', label: 'Pendiente' },
+  { valor: 'resuelto', label: 'Resuelto' },
+  { valor: 'descartado', label: 'Descartado' },
+]
 
 export default function Reportes() {
+  const {
+    reportes,
+    paginacion,
+    cargando,
+    error,
+    filtros,
+    cambiarFiltros,
+    irAPagina,
+    recargar,
+  } = useReportes()
+  const navigate = useNavigate()
+
+  const pagina = paginacion?.page ?? 1
+  const totalPaginas =
+    paginacion && paginacion.total_paginas > 0 ? paginacion.total_paginas : 1
+
   return (
-    <EnConstruccion
-      titulo="Reportes"
-      descripcion="Aquí verás los reportes de incidencias con filtros y podrás resolverlos o descartarlos."
-    />
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-dark/10 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          {ESTADOS_CHIPS.map((chip) => {
+            const activo = filtros.estado === chip.valor
+            const clases =
+              activo && chip.valor !== 'todos'
+                ? ESTADOS_REPORTE_INFO[chip.valor as EstadoReporte].badge
+                : activo
+                  ? 'bg-primary text-white'
+                  : 'bg-dark/5 text-dark/60 hover:bg-dark/10'
+            return (
+              <button
+                key={chip.valor}
+                type="button"
+                onClick={() => cambiarFiltros({ estado: chip.valor })}
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${clases}`}
+              >
+                {chip.label}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            onClick={recargar}
+            aria-label="Recargar"
+            className="ml-auto inline-flex items-center gap-2 rounded-lg border border-dark/15 px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+          >
+            <IconRefresh className="h-4 w-4" />
+            <span className="hidden sm:inline">Recargar</span>
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-3">
+          <label className="flex flex-col gap-1 text-xs font-medium text-dark/50">
+            Tipo de objetivo
+            <select
+              value={filtros.tipoObjetivo}
+              onChange={(evento) =>
+                cambiarFiltros({
+                  tipoObjetivo: evento.target
+                    .value as FiltrosUI['tipoObjetivo'],
+                })
+              }
+              className="rounded-lg border border-dark/15 bg-white px-3 py-1.5 text-sm font-normal text-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="todos">Todos</option>
+              {TIPOS_OBJETIVO.map((tipo) => (
+                <option key={tipo.valor} value={tipo.valor}>
+                  {tipo.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-dark/50">
+            Categoría
+            <select
+              value={filtros.categoria}
+              onChange={(evento) =>
+                cambiarFiltros({
+                  categoria: evento.target.value as FiltrosUI['categoria'],
+                })
+              }
+              className="rounded-lg border border-dark/15 bg-white px-3 py-1.5 text-sm font-normal text-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="todas">Todas</option>
+              {CATEGORIAS_REPORTE.map((categoria) => (
+                <option key={categoria.valor} value={categoria.valor}>
+                  {categoria.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      {error && (
+        <section className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-danger/20 bg-danger/5 p-5 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger">
+              <IconAlertTriangle className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-dark">
+                No se pudieron cargar los reportes
+              </p>
+              <p className="text-sm text-dark/60">{error}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={recargar}
+            className="inline-flex items-center gap-2 rounded-lg border border-dark/15 bg-white px-3 py-2 text-sm font-medium text-dark transition hover:bg-dark/5"
+          >
+            <IconRefresh className="h-4 w-4" />
+            Reintentar
+          </button>
+        </section>
+      )}
+
+      <section className="overflow-hidden rounded-2xl border border-dark/10 bg-white shadow-sm">
+        {cargando ? (
+          <div className="divide-y divide-dark/5">
+            {Array.from({ length: 5 }).map((_, indice) => (
+              <div
+                key={indice}
+                className="flex animate-pulse items-center gap-4 p-5"
+              >
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-48 rounded bg-dark/5" />
+                  <div className="h-3 w-64 rounded bg-dark/5" />
+                </div>
+                <div className="hidden h-6 w-20 rounded-full bg-dark/5 sm:block" />
+              </div>
+            ))}
+          </div>
+        ) : reportes.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-14 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <IconFlag className="h-7 w-7" />
+            </span>
+            <h3 className="mt-4 text-base font-semibold text-dark">
+              No hay reportes
+            </h3>
+            <p className="mt-1 text-sm text-dark/55">
+              No se encontraron reportes con los filtros seleccionados.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-dark/10 text-xs uppercase tracking-wide text-dark/45">
+                  <th className="px-5 py-3 font-medium">Objetivo</th>
+                  <th className="hidden px-5 py-3 font-medium md:table-cell">
+                    Categoría
+                  </th>
+                  <th className="hidden px-5 py-3 font-medium lg:table-cell">
+                    Reportante
+                  </th>
+                  <th className="px-5 py-3 font-medium">Estado</th>
+                  <th className="hidden px-5 py-3 font-medium sm:table-cell">
+                    Fecha
+                  </th>
+                  <th className="px-5 py-3">
+                    <span className="sr-only">Abrir</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-dark/5">
+                {reportes.map((reporte) => (
+                  <tr
+                    key={reporte.id}
+                    onClick={() => navigate(`/reportes/${reporte.id}`)}
+                    className="cursor-pointer transition hover:bg-dark/[0.02]"
+                  >
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-dark">
+                        {reporte.objetivo.nombre ??
+                          `${etiquetaTipoObjetivo(reporte.objetivo.tipo)} #${reporte.objetivo.id}`}
+                      </p>
+                      <p className="text-xs capitalize text-dark/50">
+                        {etiquetaTipoObjetivo(reporte.tipoObjetivo)} · Reporte #
+                        {reporte.id}
+                      </p>
+                    </td>
+                    <td className="hidden px-5 py-4 text-dark/70 md:table-cell">
+                      {etiquetaCategoria(reporte.categoria)}
+                    </td>
+                    <td className="hidden px-5 py-4 lg:table-cell">
+                      <p className="text-dark/70">{reporte.reportante.nombre}</p>
+                      <p className="text-xs capitalize text-dark/45">
+                        {reporte.reportante.rol}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <Badge info={ESTADOS_REPORTE_INFO[reporte.estado]} />
+                    </td>
+                    <td className="hidden whitespace-nowrap px-5 py-4 text-dark/55 sm:table-cell">
+                      {formatoFecha.format(new Date(reporte.createdAt))}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <Link
+                        to={`/reportes/${reporte.id}`}
+                        onClick={(evento) => evento.stopPropagation()}
+                        aria-label={`Ver reporte ${reporte.id}`}
+                        className="inline-grid h-8 w-8 place-items-center rounded-lg text-dark/40 transition hover:bg-dark/5 hover:text-dark"
+                      >
+                        <IconChevronRight className="h-5 w-5" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {!cargando && !error && paginacion && paginacion.total > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-dark/50">
+            Mostrando {reportes.length} de {paginacion.total}{' '}
+            {paginacion.total === 1 ? 'reporte' : 'reportes'}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => irAPagina(pagina - 1)}
+              disabled={pagina <= 1}
+              className="rounded-lg border border-dark/15 px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <span className="text-sm text-dark/60">
+              Página {pagina} de {totalPaginas}
+            </span>
+            <button
+              type="button"
+              onClick={() => irAPagina(pagina + 1)}
+              disabled={pagina >= totalPaginas}
+              className="rounded-lg border border-dark/15 px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

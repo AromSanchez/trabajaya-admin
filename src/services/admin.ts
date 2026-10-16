@@ -40,16 +40,69 @@ interface TecnicosResponse {
   }
 }
 
-interface ReportesResponse {
+export interface Paginacion {
+  page: number
+  limit: number
+  total: number
+  total_paginas: number
+}
+
+export type EstadoReporte = 'pendiente' | 'resuelto' | 'descartado'
+export type TipoObjetivo = 'tecnico' | 'cliente' | 'resena'
+export type CategoriaReporte =
+  | 'no_se_presento'
+  | 'no_estaba'
+  | 'trabajo_deficiente'
+  | 'cobro_diferente'
+  | 'comportamiento_inapropiado'
+  | 'fraude'
+  | 'contenido_inapropiado'
+  | 'otro'
+
+export interface ReporteObjetivo {
+  tipo: TipoObjetivo
+  id: number
+  nombre?: string
+  rol?: string
+  calificacion?: number
+  comentario?: string
+}
+
+export interface Reporte {
+  id: number
+  tipoObjetivo: TipoObjetivo
+  categoria: CategoriaReporte
+  comentario: string
+  estado: EstadoReporte
+  reportante: { id: number; nombre: string; rol: string }
+  objetivo: ReporteObjetivo
+  servicio: { id: number; estado: string }
+  notaResolucion: string | null
+  resueltoPor: { id: number; nombre: string } | null
+  resueltoAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+interface ReportesListadoResponse {
   data: {
-    reportes: unknown[]
-    paginacion: {
-      page: number
-      limit: number
-      total: number
-      total_paginas: number
-    }
+    reportes: Reporte[]
+    paginacion: Paginacion
   }
+}
+
+interface ReporteResponse {
+  data: {
+    reporte: Reporte
+  }
+}
+
+export interface FiltrosReportes {
+  estado?: EstadoReporte
+  tipoObjetivo?: TipoObjetivo
+  categoria?: CategoriaReporte
+  page?: number
+  limit?: number
 }
 
 export async function listarTecnicos(
@@ -62,10 +115,42 @@ export async function listarTecnicos(
 }
 
 export async function contarReportesPorEstado(estado: string): Promise<number> {
-  const { data } = await api.get<ReportesResponse>('/admin/reportes', {
+  const { data } = await api.get<ReportesListadoResponse>('/admin/reportes', {
     params: { estado, limit: 1 },
   })
   return data.data.paginacion.total
+}
+
+export async function listarReportes(
+  filtros: FiltrosReportes = {},
+): Promise<{ reportes: Reporte[]; paginacion: Paginacion }> {
+  const params: Record<string, string | number> = {}
+  if (filtros.estado) params.estado = filtros.estado
+  if (filtros.tipoObjetivo) params.tipo_objetivo = filtros.tipoObjetivo
+  if (filtros.categoria) params.categoria = filtros.categoria
+  if (filtros.page) params.page = filtros.page
+  if (filtros.limit) params.limit = filtros.limit
+
+  const { data } = await api.get<ReportesListadoResponse>('/admin/reportes', {
+    params,
+  })
+  return data.data
+}
+
+export async function obtenerReporte(id: number | string): Promise<Reporte> {
+  const { data } = await api.get<ReporteResponse>(`/admin/reportes/${id}`)
+  return data.data.reporte
+}
+
+export async function resolverReporte(
+  id: number | string,
+  payload: { estado: 'resuelto' | 'descartado'; nota: string },
+): Promise<Reporte> {
+  const { data } = await api.patch<ReporteResponse>(
+    `/admin/reportes/${id}`,
+    payload,
+  )
+  return data.data.reporte
 }
 
 export interface MetricasDashboard {
