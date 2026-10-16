@@ -3,6 +3,9 @@
 @theme {
   --color-primary: #1976d2;
   --color-dark: #071b36;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
 }
 
 html,

@@ -103,3 +103,31 @@ export function IconConstruction({ className }: IconProps) {
     </svg>
   )
 }
+
+export function IconCheckCircle({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <path d="m9 11 3 3L22 4" />
+    </svg>
+  )
+}
+
+export function IconAlertTriangle({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <path d="M12 9v4" />
+      <path d="M12 17h.01" />
+    </svg>
+  )
+}
+
+export function IconRefresh({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+    </svg>
+  )
+}
