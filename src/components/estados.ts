@@ -1,13 +1,16 @@
-import type { EstadoVerificacion } from '../services/admin'
+import type { EstadoDocumento, EstadoVerificacion } from '../services/admin'
 
-interface EstadoInfo {
+export interface EstadoInfo {
   label: string
   badge: string
-  bar: string
   dot: string
 }
 
-export const ESTADOS_INFO: Record<EstadoVerificacion, EstadoInfo> = {
+export interface EstadoVerificacionInfo extends EstadoInfo {
+  bar: string
+}
+
+export const ESTADOS_INFO: Record<EstadoVerificacion, EstadoVerificacionInfo> = {
   pendiente: {
     label: 'Pendiente',
     badge: 'bg-dark/10 text-dark/70',
@@ -43,5 +46,23 @@ export const ESTADOS_INFO: Record<EstadoVerificacion, EstadoInfo> = {
     badge: 'bg-dark/10 text-dark/50',
     bar: 'bg-dark/20',
     dot: 'bg-dark/20',
+  },
+}
+
+export const DOCUMENTO_ESTADOS_INFO: Record<EstadoDocumento, EstadoInfo> = {
+  pendiente: {
+    label: 'Pendiente',
+    badge: 'bg-dark/10 text-dark/60',
+    dot: 'bg-dark/40',
+  },
+  aprobado: {
+    label: 'Aprobado',
+    badge: 'bg-success/10 text-success',
+    dot: 'bg-success',
+  },
+  observado: {
+    label: 'Observado',
+    badge: 'bg-warning/10 text-warning',
+    dot: 'bg-warning',
   },
 }

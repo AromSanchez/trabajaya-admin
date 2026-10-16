@@ -1,8 +1,14 @@
+import { Link, useNavigate } from 'react-router-dom'
 import { ESTADOS_VERIFICACION } from '../../services/admin'
 import type { EstadoVerificacion } from '../../services/admin'
 import { ESTADOS_INFO } from '../../components/estados'
 import { obtenerIniciales } from '../../components/navigation'
-import { IconAlertTriangle, IconRefresh, IconUsers } from '../../components/icons'
+import {
+  IconAlertTriangle,
+  IconChevronRight,
+  IconRefresh,
+  IconUsers,
+} from '../../components/icons'
 import { useTecnicos } from '../../hooks/useTecnicos'
 import type { FiltroEstado } from '../../hooks/useTecnicos'
 
@@ -31,6 +37,7 @@ const FILTROS: { valor: FiltroEstado; label: string }[] = [
 export default function Tecnicos() {
   const { estado, tecnicos, cargando, error, cambiarEstado, recargar } =
     useTecnicos()
+  const navigate = useNavigate()
 
   return (
     <div className="space-y-5">
@@ -143,6 +150,9 @@ export default function Tecnicos() {
                   <th className="hidden px-5 py-3 font-medium sm:table-cell">
                     Registrado
                   </th>
+                  <th className="px-5 py-3">
+                    <span className="sr-only">Abrir</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-dark/5">
@@ -151,7 +161,8 @@ export default function Tecnicos() {
                   return (
                     <tr
                       key={tecnico.id}
-                      className="transition hover:bg-dark/[0.02]"
+                      onClick={() => navigate(`/tecnicos/${tecnico.id}`)}
+                      className="cursor-pointer transition hover:bg-dark/[0.02]"
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
@@ -192,6 +203,16 @@ export default function Tecnicos() {
                       </td>
                       <td className="hidden whitespace-nowrap px-5 py-4 text-dark/55 sm:table-cell">
                         {formatearFecha(tecnico.createdAt)}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <Link
+                          to={`/tecnicos/${tecnico.id}`}
+                          onClick={(evento) => evento.stopPropagation()}
+                          aria-label={`Ver detalle de ${tecnico.usuario.nombre}`}
+                          className="inline-grid h-8 w-8 place-items-center rounded-lg text-dark/40 transition hover:bg-dark/5 hover:text-dark"
+                        >
+                          <IconChevronRight className="h-5 w-5" />
+                        </Link>
                       </td>
                     </tr>
                   )

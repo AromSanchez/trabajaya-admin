@@ -131,3 +131,67 @@ export function IconRefresh({ className }: IconProps) {
     </svg>
   )
 }
+
+export function IconArrowLeft({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M19 12H5" />
+      <path d="m12 19-7-7 7-7" />
+    </svg>
+  )
+}
+
+export function IconChevronRight({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  )
+}
+
+export function IconX({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  )
+}
+
+export function IconFileText({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+      <path d="M10 9H8" />
+    </svg>
+  )
+}
+
+export function IconEye({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+export function IconBan({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m5.6 5.6 12.8 12.8" />
+    </svg>
+  )
+}
+
+export function IconPlay({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="m6 4 14 8-14 8z" />
+    </svg>
+  )
+}
