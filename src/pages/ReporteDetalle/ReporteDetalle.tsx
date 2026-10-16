@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Badge from '../../components/Badge'
+import Modal from '../../components/Modal'
 import {
   ESTADOS_REPORTE_INFO,
   etiquetaCategoria,
@@ -11,10 +12,11 @@ import {
   IconAlertTriangle,
   IconArrowLeft,
   IconCheckCircle,
+  IconEyeOff,
   IconFlag,
   IconRefresh,
 } from '../../components/icons'
-import { resolverReporte } from '../../services/admin'
+import { ocultarResena, resolverReporte } from '../../services/admin'
 import type { EstadoReporte } from '../../services/admin'
 import { obtenerMensajeError } from '../../services/errors'
 import { useReporteDetalle } from '../../hooks/useReporteDetalle'
@@ -35,6 +37,11 @@ export default function ReporteDetalle() {
   const [nota, setNota] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [errorForm, setErrorForm] = useState<string | null>(null)
+  const [mostrarOcultar, setMostrarOcultar] = useState(false)
+  const [motivoOcultar, setMotivoOcultar] = useState('')
+  const [ocultando, setOcultando] = useState(false)
+  const [errorOcultar, setErrorOcultar] = useState<string | null>(null)
+  const [resenaOculta, setResenaOculta] = useState(false)
 
   if (cargando) {
     return (
@@ -101,6 +108,27 @@ export default function ReporteDetalle() {
       setErrorForm(obtenerMensajeError(err))
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function ocultar(evento: FormEvent) {
+    evento.preventDefault()
+    const texto = motivoOcultar.trim()
+    if (texto.length < 1) {
+      setErrorOcultar('El motivo es obligatorio.')
+      return
+    }
+    setOcultando(true)
+    setErrorOcultar(null)
+    try {
+      await ocultarResena(reporte!.objetivo.id, texto)
+      setResenaOculta(true)
+      setMotivoOcultar('')
+      setMostrarOcultar(false)
+    } catch (err) {
+      setErrorOcultar(obtenerMensajeError(err))
+    } finally {
+      setOcultando(false)
     }
   }
 
@@ -197,6 +225,26 @@ export default function ReporteDetalle() {
                 {reporte.objetivo.comentario}
               </p>
             )}
+            <div className="mt-3 border-t border-dark/10 pt-3">
+              {resenaOculta ? (
+                <p className="inline-flex items-center gap-2 text-sm font-medium text-success">
+                  <IconEyeOff className="h-4 w-4" />
+                  Reseña oculta correctamente
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorOcultar(null)
+                    setMostrarOcultar(true)
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/5 px-3 py-1.5 text-sm font-medium text-danger transition hover:bg-danger/10"
+                >
+                  <IconEyeOff className="h-4 w-4" />
+                  Ocultar reseña
+                </button>
+              )}
+            </div>
           </div>
         )}
       </section>
@@ -293,6 +341,58 @@ export default function ReporteDetalle() {
           </dl>
         )}
       </section>
+
+      <Modal
+        abierto={mostrarOcultar}
+        onCerrar={() => setMostrarOcultar(false)}
+        titulo="Ocultar reseña"
+        descripcion="La reseña dejará de mostrarse y no contará para el promedio del técnico. No se elimina."
+      >
+        <form onSubmit={ocultar} className="space-y-4">
+          <div>
+            <label
+              htmlFor="motivo-ocultar"
+              className="mb-1.5 block text-sm font-medium text-dark/70"
+            >
+              Motivo
+            </label>
+            <textarea
+              id="motivo-ocultar"
+              rows={3}
+              maxLength={500}
+              value={motivoOcultar}
+              onChange={(evento) => setMotivoOcultar(evento.target.value)}
+              placeholder="Explica por qué se oculta la reseña"
+              className="w-full resize-none rounded-xl border border-dark/15 px-3 py-2 text-sm text-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <p className="mt-1 text-right text-xs text-dark/40">
+              {motivoOcultar.length}/500
+            </p>
+          </div>
+
+          {errorOcultar && <p className="text-sm text-danger">{errorOcultar}</p>}
+
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setMostrarOcultar(false)}
+              className="rounded-lg border border-dark/15 px-4 py-2 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={ocultando}
+              className="inline-flex items-center gap-2 rounded-lg bg-danger px-4 py-2 text-sm font-medium text-white transition hover:bg-danger/90 disabled:opacity-60"
+            >
+              {ocultando && (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              )}
+              Ocultar reseña
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

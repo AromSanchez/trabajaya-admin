@@ -153,6 +153,33 @@ export async function resolverReporte(
   return data.data.reporte
 }
 
+export interface Resena {
+  id: number
+  servicioId: number
+  calificacion: number
+  comentario: string
+  oculta: boolean
+  motivoOcultamiento: string | null
+  ocultadaAt: string | null
+}
+
+interface ResenaResponse {
+  data: {
+    resena: Resena
+  }
+}
+
+export async function ocultarResena(
+  id: number | string,
+  motivo: string,
+): Promise<Resena> {
+  const { data } = await api.post<ResenaResponse>(
+    `/admin/resenas/${id}/ocultar`,
+    { motivo },
+  )
+  return data.data.resena
+}
+
 export interface MetricasDashboard {
   tecnicosPorEstado: Record<EstadoVerificacion, number>
   totalTecnicos: number
