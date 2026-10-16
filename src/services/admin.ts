@@ -11,10 +11,22 @@ export const ESTADOS_VERIFICACION = [
 
 export type EstadoVerificacion = (typeof ESTADOS_VERIFICACION)[number]
 
-export interface TecnicoResumen {
+export interface Disponibilidad {
+  dia: string
+  desde: string
+  hasta: string
+}
+
+export interface Tecnico {
   id: number
   estadoVerificacion: EstadoVerificacion
   oficio: string
+  descripcion: string | null
+  aniosExperiencia: number
+  distritos: string[]
+  disponibilidad: Disponibilidad[]
+  documentosEnviadosAt: string | null
+  createdAt: string
   usuario: {
     id: number
     email: string
@@ -24,7 +36,7 @@ export interface TecnicoResumen {
 
 interface TecnicosResponse {
   data: {
-    tecnicos: TecnicoResumen[]
+    tecnicos: Tecnico[]
   }
 }
 
@@ -40,8 +52,12 @@ interface ReportesResponse {
   }
 }
 
-export async function listarTecnicos(): Promise<TecnicoResumen[]> {
-  const { data } = await api.get<TecnicosResponse>('/admin/tecnicos')
+export async function listarTecnicos(
+  estado?: EstadoVerificacion,
+): Promise<Tecnico[]> {
+  const { data } = await api.get<TecnicosResponse>('/admin/tecnicos', {
+    params: estado ? { estado } : undefined,
+  })
   return data.data.tecnicos
 }
 
