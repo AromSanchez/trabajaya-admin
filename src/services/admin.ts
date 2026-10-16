@@ -180,6 +180,29 @@ export async function ocultarResena(
   return data.data.resena
 }
 
+export interface CancelacionTardia {
+  usuarioId: number
+  rol: 'cliente' | 'tecnico'
+  nombre: string
+  email: string
+  cancelacionesTardias: number
+}
+
+interface CancelacionesTardiasResponse {
+  data: {
+    usuarios: CancelacionTardia[]
+  }
+}
+
+export async function listarCancelacionesTardias(): Promise<
+  CancelacionTardia[]
+> {
+  const { data } = await api.get<CancelacionesTardiasResponse>(
+    '/admin/cancelaciones-tardias',
+  )
+  return data.data.usuarios
+}
+
 export interface MetricasDashboard {
   tecnicosPorEstado: Record<EstadoVerificacion, number>
   totalTecnicos: number
