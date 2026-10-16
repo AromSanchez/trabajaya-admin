@@ -43,72 +43,108 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-dark px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
-        <h1 className="text-center text-2xl font-bold text-primary">
-          TrabajaYa Admin
-        </h1>
-        <p className="mt-2 mb-6 text-center text-sm text-dark/60">
-          Inicia sesión para administrar la plataforma.
-        </p>
+    <div className="flex min-h-screen bg-base">
+      <aside className="hidden w-[42%] flex-col justify-between border-r border-line bg-ink p-10 lg:flex">
+        <div className="flex items-center gap-3">
+          <span className="grid h-9 w-9 place-items-center bg-primary text-sm font-bold text-white">
+            TY
+          </span>
+          <span className="font-display text-sm font-semibold text-white">
+            TrabajaYa Admin
+          </span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-1 block text-sm font-medium text-dark"
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
+            Panel interno
+          </p>
+          <h2 className="mt-3 font-display text-4xl font-semibold leading-tight text-white">
+            Verificación,
+            <br />
+            reportes y métricas
+            <br />
+            en un solo lugar.
+          </h2>
+          <div className="mt-8 h-px w-full bg-white/15" />
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
+            Acceso restringido al equipo de administración de TrabajaYa.
+          </p>
+        </div>
+
+        <p className="text-xs text-white/40">© 2026 TrabajaYa</p>
+      </aside>
+
+      <main className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+            Inicio de sesión
+          </p>
+          <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
+            Bienvenido de nuevo
+          </h1>
+          <p className="mt-2 text-sm text-ink-2">
+            Inicia sesión para administrar la plataforma.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-3"
+              >
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+                placeholder="admin@trabajoya.com"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-3"
+              >
+                Contraseña
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+                placeholder="••••••"
+              />
+            </div>
+
+            {error && (
+              <p
+                role="alert"
+                className="border border-danger/30 bg-danger/5 px-3 py-2 text-sm font-medium text-danger"
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={enviando}
+              aria-busy={enviando}
+              className="w-full bg-primary px-4 py-2.5 font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-dark active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Correo electrónico
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-dark/20 px-3 py-2 text-sm text-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
-              placeholder="admin@trabajoya.com"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-1 block text-sm font-medium text-dark"
-            >
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-dark/20 px-3 py-2 text-sm text-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
-              placeholder="••••••"
-            />
-          </div>
-
-          {error && (
-            <p
-              role="alert"
-              className="rounded-lg border border-danger/20 bg-danger/10 px-3 py-2 text-sm font-medium text-danger"
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={enviando}
-            className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {enviando ? 'Ingresando…' : 'Ingresar'}
-          </button>
-        </form>
-      </div>
+              {enviando ? 'Ingresando…' : 'Ingresar'}
+            </button>
+          </form>
+        </div>
+      </main>
     </div>
   )
 }

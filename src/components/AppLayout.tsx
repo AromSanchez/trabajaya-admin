@@ -8,7 +8,7 @@ export default function AppLayout() {
   const [movilAbierto, setMovilAbierto] = useState(false)
 
   return (
-    <div className="min-h-screen bg-dark/[0.03]">
+    <div className="min-h-screen bg-base">
       <Sidebar
         colapsado={colapsado}
         movilAbierto={movilAbierto}
@@ -17,12 +17,12 @@ export default function AppLayout() {
       />
 
       <div
-        className={`flex min-h-screen flex-col transition-[padding] duration-300 ${
+        className={`flex min-h-screen flex-col transition-[padding] duration-[var(--duration)] ease-[var(--ease)] ${
           colapsado ? 'lg:pl-20' : 'lg:pl-64'
         }`}
       >
         <Header onAbrirMenuMovil={() => setMovilAbierto(true)} />
-        <main className="mx-auto w-full max-w-7xl flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
           <Outlet />
         </main>
       </div>

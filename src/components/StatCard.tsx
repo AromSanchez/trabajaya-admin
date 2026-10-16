@@ -7,7 +7,7 @@ const ACENTOS: Record<Acento, string> = {
   success: 'bg-success/10 text-success',
   warning: 'bg-warning/10 text-warning',
   danger: 'bg-danger/10 text-danger',
-  dark: 'bg-dark/10 text-dark',
+  dark: 'bg-ink-3/10 text-ink-3',
 }
 
 interface StatCardProps {
@@ -26,18 +26,22 @@ export default function StatCard({
   acento = 'primary',
 }: StatCardProps) {
   return (
-    <article className="rounded-2xl border border-dark/10 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div
-        className={`grid h-11 w-11 place-items-center rounded-xl ${ACENTOS[acento]}`}
-      >
-        <Icon className="h-5 w-5" />
+    <article className="bg-surface p-5">
+      <div className="flex items-center gap-2.5">
+        <span
+          className={`grid h-7 w-7 place-items-center ${ACENTOS[acento]}`}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+          {titulo}
+        </p>
       </div>
-      <p className="mt-4 text-3xl font-semibold tracking-tight text-dark">
+      <p className="mt-4 font-display text-4xl font-semibold tabular-nums leading-none text-ink">
         {valor}
       </p>
-      <p className="mt-1 text-sm font-medium text-dark/70">{titulo}</p>
       {descripcion && (
-        <p className="mt-0.5 text-xs text-dark/45">{descripcion}</p>
+        <p className="mt-2 text-xs text-ink-2">{descripcion}</p>
       )}
     </article>
   )

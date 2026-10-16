@@ -33,29 +33,31 @@ export default function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-dark/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink/50"
         onClick={onCerrar}
         aria-hidden="true"
       />
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl ${
+        className={`relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden border border-line bg-surface ${
           ancho === 'lg' ? 'max-w-3xl' : 'max-w-lg'
         }`}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-dark/10 p-5">
+        <div className="flex items-start justify-between gap-4 border-b border-line p-5">
           <div>
-            <h2 className="text-base font-semibold text-dark">{titulo}</h2>
+            <h2 className="font-display text-base font-semibold text-ink">
+              {titulo}
+            </h2>
             {descripcion && (
-              <p className="mt-0.5 text-sm text-dark/55">{descripcion}</p>
+              <p className="mt-0.5 text-sm text-ink-2">{descripcion}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-dark/50 transition hover:bg-dark/5 hover:text-dark"
+            className="grid h-8 w-8 shrink-0 place-items-center text-ink-3 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
           >
             <IconX className="h-5 w-5" />
           </button>

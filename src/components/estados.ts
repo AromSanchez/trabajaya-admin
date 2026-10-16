@@ -13,9 +13,9 @@ export interface EstadoVerificacionInfo extends EstadoInfo {
 export const ESTADOS_INFO: Record<EstadoVerificacion, EstadoVerificacionInfo> = {
   pendiente: {
     label: 'Pendiente',
-    badge: 'bg-dark/10 text-dark/70',
-    bar: 'bg-dark/40',
-    dot: 'bg-dark/40',
+    badge: 'bg-ink-3/10 text-ink-3',
+    bar: 'bg-ink-3',
+    dot: 'bg-ink-3',
   },
   en_revision: {
     label: 'En revisión',
@@ -43,17 +43,17 @@ export const ESTADOS_INFO: Record<EstadoVerificacion, EstadoVerificacionInfo> = 
   },
   suspendido: {
     label: 'Suspendido',
-    badge: 'bg-dark/10 text-dark/50',
-    bar: 'bg-dark/20',
-    dot: 'bg-dark/20',
+    badge: 'bg-ink-3/10 text-ink-3',
+    bar: 'bg-ink-3',
+    dot: 'bg-ink-3',
   },
 }
 
 export const DOCUMENTO_ESTADOS_INFO: Record<EstadoDocumento, EstadoInfo> = {
   pendiente: {
     label: 'Pendiente',
-    badge: 'bg-dark/10 text-dark/60',
-    dot: 'bg-dark/40',
+    badge: 'bg-ink-3/10 text-ink-3',
+    dot: 'bg-ink-3',
   },
   aprobado: {
     label: 'Aprobado',

@@ -18,8 +18,8 @@ export const ESTADOS_REPORTE_INFO: Record<EstadoReporte, EstadoInfo> = {
   },
   descartado: {
     label: 'Descartado',
-    badge: 'bg-dark/10 text-dark/50',
-    dot: 'bg-dark/30',
+    badge: 'bg-ink-3/10 text-ink-3',
+    dot: 'bg-ink-3',
   },
 }
 

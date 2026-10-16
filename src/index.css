@@ -1,11 +1,76 @@
 @import "tailwindcss";
 
 @theme {
+  /* Colores base (conservando compatibilidad) */
   --color-primary: #1976d2;
+  --color-primary-dark: #1565c0;
   --color-dark: #071b36;
+  --color-accent: #1976d2;
+
+  /* Paleta extendida (Swiss Rationalist) */
+  --color-base: #f5f7fa; /* fondo app */
+  --color-surface: #ffffff; /* superficies */
+  --color-surface-2: #fafbfd; /* fondo sutil */
+  --color-ink: #071b36; /* texto principal */
+  --color-ink-2: #4f5b66; /* texto secundario */
+  --color-ink-3: #667180; /* meta/placeholder */
+  --color-line: #e6e9ef; /* bordes/reglas */
+
+  /* Estados semánticos */
   --color-success: #16a34a;
-  --color-warning: #d97706;
+  --color-warning: #f59e0b;
   --color-danger: #dc2626;
+
+  /* Tipografía */
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Escala tipográfica (1.250 major third) */
+  --text-xs: 0.75rem;
+  --leading-xs: 1rem;
+  --text-sm: 0.875rem;
+  --leading-sm: 1.25rem;
+  --text-base: 1rem;
+  --leading-base: 1.5rem;
+  --text-lg: 1.125rem;
+  --leading-lg: 1.75rem;
+  --text-xl: 1.25rem;
+  --leading-xl: 1.75rem;
+  --text-2xl: 1.563rem;
+  --leading-2xl: 2rem;
+  --text-3xl: 1.953rem;
+  --leading-3xl: 2.25rem;
+  --text-4xl: 2.441rem;
+  --leading-4xl: 2.5rem;
+
+  /* Espaciado (escala única) */
+  --spacing-3xs: 0.25rem;
+  --spacing-2xs: 0.5rem;
+  --spacing-xs: 0.75rem;
+  --spacing-s: 1rem;
+  --spacing-m: 1.5rem;
+  --spacing-l: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-2xl: 4.5rem;
+  --spacing-3xl: 7rem;
+
+  /* Forma */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  /* Sombras (cero, alineado con restricción) */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+
+  /* Movimiento */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 120ms;
+  --duration: 220ms;
+  --duration-slow: 420ms;
 }
 
 html,
@@ -15,9 +80,9 @@ body,
 }
 
 body {
-  color: var(--color-dark);
-  background-color: white;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-ink);
+  background-color: var(--color-base);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

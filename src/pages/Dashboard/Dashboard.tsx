@@ -14,10 +14,10 @@ import {
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-2xl border border-dark/10 bg-white p-5 shadow-sm">
-      <div className="h-11 w-11 rounded-xl bg-dark/5" />
-      <div className="mt-4 h-8 w-16 rounded bg-dark/5" />
-      <div className="mt-2 h-4 w-28 rounded bg-dark/5" />
+    <div className="animate-pulse bg-surface p-5">
+      <div className="h-3 w-24 bg-line" />
+      <div className="mt-5 h-9 w-16 bg-line" />
+      <div className="mt-3 h-3 w-32 bg-line" />
     </div>
   )
 }
@@ -29,33 +29,36 @@ export default function Dashboard() {
   const total = metricas?.totalTecnicos ?? 0
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-dark/10 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-dark">
+    <div className="space-y-8">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+          Resumen
+        </p>
+        <h2 className="mt-1 font-display text-3xl font-semibold text-ink">
           Hola, {usuario?.nombre ?? 'Administrador'}
         </h2>
-        <p className="mt-1 text-sm text-dark/60">
-          Resumen general de la plataforma.
+        <p className="mt-1 text-sm text-ink-2">
+          Estado general de la plataforma.
         </p>
-      </section>
+      </header>
 
       {error && (
-        <section className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-danger/20 bg-danger/5 p-5 sm:flex-row sm:items-center">
+        <section className="flex flex-col items-start justify-between gap-3 border border-danger/30 bg-danger/5 p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger">
+            <span className="grid h-9 w-9 shrink-0 place-items-center bg-danger/10 text-danger">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-dark">
+              <p className="text-sm font-semibold text-ink">
                 No se pudieron cargar las métricas
               </p>
-              <p className="text-sm text-dark/60">{error}</p>
+              <p className="text-sm text-ink-2">{error}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 rounded-lg border border-dark/15 bg-white px-3 py-2 text-sm font-medium text-dark transition hover:bg-dark/5"
+            className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -63,7 +66,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-px border border-line bg-line sm:grid-cols-2 xl:grid-cols-4">
         {cargando ? (
           <>
             <SkeletonCard />
@@ -105,13 +108,15 @@ export default function Dashboard() {
         )}
       </div>
 
-      <section className="rounded-2xl border border-dark/10 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-dark">
+      <section className="border border-line bg-surface p-6">
+        <div className="flex items-baseline justify-between border-b border-line pb-4">
+          <h3 className="font-display text-lg font-semibold text-ink">
             Técnicos por estado
           </h3>
           {!cargando && !error && (
-            <span className="text-sm text-dark/50">{total} en total</span>
+            <span className="text-sm tabular-nums text-ink-3">
+              {total} en total
+            </span>
           )}
         </div>
 
@@ -119,8 +124,8 @@ export default function Dashboard() {
           <div className="mt-5 space-y-4">
             {ESTADOS_VERIFICACION.map((estado) => (
               <div key={estado} className="animate-pulse">
-                <div className="mb-2 h-4 w-24 rounded bg-dark/5" />
-                <div className="h-2 w-full rounded-full bg-dark/5" />
+                <div className="mb-2 h-4 w-24 bg-line" />
+                <div className="h-2 w-full bg-line" />
               </div>
             ))}
           </div>
@@ -134,25 +139,25 @@ export default function Dashboard() {
               return (
                 <li key={estado}>
                   <div className="mb-1.5 flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 font-medium text-dark/70">
+                    <span className="flex items-center gap-2 font-medium text-ink">
                       <span
-                        className={`h-2.5 w-2.5 rounded-full ${info.dot}`}
+                        className={`h-2.5 w-2.5 ${info.dot}`}
                         aria-hidden="true"
                       />
                       {info.label}
                     </span>
-                    <span className="tabular-nums text-dark/60">
+                    <span className="tabular-nums text-ink-2">
                       {cantidad}
                       {total > 0 && (
-                        <span className="ml-1 text-dark/40">
+                        <span className="ml-1 text-ink-3">
                           · {porcentaje}%
                         </span>
                       )}
                     </span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-dark/5">
+                  <div className="h-2 w-full overflow-hidden bg-line">
                     <div
-                      className={`h-full rounded-full ${info.bar} transition-[width] duration-500`}
+                      className={`h-full ${info.bar} transition-[width] duration-[var(--duration-slow)] ease-[var(--ease-out)]`}
                       style={{ width: `${porcentaje}%` }}
                     />
                   </div>
@@ -163,7 +168,7 @@ export default function Dashboard() {
         )}
 
         {!cargando && !error && total === 0 && (
-          <p className="mt-5 rounded-xl bg-dark/[0.03] px-4 py-3 text-center text-sm text-dark/50">
+          <p className="mt-5 bg-surface-2 px-4 py-3 text-center text-sm text-ink-2">
             Aún no hay técnicos registrados.
           </p>
         )}

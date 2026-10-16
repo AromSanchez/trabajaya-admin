@@ -46,8 +46,8 @@ export default function ReporteDetalle() {
   if (cargando) {
     return (
       <div className="space-y-5">
-        <div className="h-8 w-44 animate-pulse rounded bg-dark/5" />
-        <div className="h-64 animate-pulse rounded-2xl border border-dark/10 bg-white shadow-sm" />
+        <div className="h-8 w-44 animate-pulse bg-line" />
+        <div className="h-64 animate-pulse border border-line bg-surface" />
       </div>
     )
   }
@@ -56,16 +56,16 @@ export default function ReporteDetalle() {
     return (
       <div className="space-y-5">
         <EnlaceVolver />
-        <section className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-danger/20 bg-danger/5 p-5 sm:flex-row sm:items-center">
+        <section className="flex flex-col items-start justify-between gap-3 border border-danger/30 bg-danger/5 p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger">
+            <span className="grid h-9 w-9 shrink-0 place-items-center bg-danger/10 text-danger">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-dark">
+              <p className="text-sm font-semibold text-ink">
                 No se pudo cargar el reporte
               </p>
-              <p className="text-sm text-dark/60">
+              <p className="text-sm text-ink-2">
                 {error ?? 'Reporte no encontrado.'}
               </p>
             </div>
@@ -73,7 +73,7 @@ export default function ReporteDetalle() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 rounded-lg border border-dark/15 bg-white px-3 py-2 text-sm font-medium text-dark transition hover:bg-dark/5"
+            className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -139,27 +139,27 @@ export default function ReporteDetalle() {
         <button
           type="button"
           onClick={recargar}
-          className="inline-flex items-center gap-2 rounded-lg border border-dark/15 bg-white px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+          className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
         >
           <IconRefresh className="h-4 w-4" />
           Recargar
         </button>
       </div>
 
-      <section className="rounded-2xl border border-dark/10 bg-white p-6 shadow-sm">
+      <section className="border border-line bg-surface p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <span className="grid h-12 w-12 shrink-0 place-items-center bg-primary/10 text-primary">
               <IconFlag className="h-6 w-6" />
             </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-semibold text-dark">
+                <h2 className="font-display text-lg font-semibold text-ink">
                   {objetivoNombre}
                 </h2>
                 <Badge info={ESTADOS_REPORTE_INFO[reporte.estado]} />
               </div>
-              <p className="mt-0.5 text-sm text-dark/55">
+              <p className="mt-0.5 text-sm text-ink-2">
                 Reporte #{reporte.id} ·{' '}
                 {etiquetaTipoObjetivo(reporte.tipoObjetivo)} ·{' '}
                 {etiquetaCategoria(reporte.categoria)}
@@ -169,14 +169,14 @@ export default function ReporteDetalle() {
           {reporte.objetivo.tipo === 'tecnico' && (
             <Link
               to={`/tecnicos/${reporte.objetivo.id}`}
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-dark/15 px-3 py-1.5 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+              className="inline-flex shrink-0 items-center gap-2 border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
             >
               Ver técnico
             </Link>
           )}
         </div>
 
-        <dl className="mt-6 grid gap-4 border-t border-dark/10 pt-5 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-6 grid gap-4 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-3">
           <Dato etiqueta="Categoría">
             {etiquetaCategoria(reporte.categoria)}
           </Dato>
@@ -189,7 +189,7 @@ export default function ReporteDetalle() {
           </Dato>
           <Dato etiqueta="Reportante">
             {reporte.reportante.nombre}
-            <span className="ml-1 text-xs capitalize text-dark/45">
+            <span className="ml-1 text-xs capitalize text-ink-3">
               ({reporte.reportante.rol})
             </span>
           </Dato>
@@ -201,31 +201,31 @@ export default function ReporteDetalle() {
           </Dato>
         </dl>
 
-        <div className="mt-5 border-t border-dark/10 pt-5">
-          <p className="text-xs uppercase tracking-wide text-dark/45">
+        <div className="mt-5 border-t border-line pt-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
             Comentario del reporte
           </p>
-          <p className="mt-1 whitespace-pre-line text-sm text-dark/80">
+          <p className="mt-1 whitespace-pre-line text-sm text-ink">
             {reporte.comentario}
           </p>
         </div>
 
         {reporte.objetivo.tipo === 'resena' && (
-          <div className="mt-5 rounded-xl border border-dark/10 bg-dark/[0.02] p-4">
-            <p className="text-xs uppercase tracking-wide text-dark/45">
+          <div className="mt-5 border border-line bg-surface-2 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
               Reseña reportada
             </p>
             {typeof reporte.objetivo.calificacion === 'number' && (
-              <p className="mt-1 text-sm font-medium text-dark">
+              <p className="mt-1 text-sm font-medium tabular-nums text-ink">
                 Calificación: {reporte.objetivo.calificacion} / 5
               </p>
             )}
             {reporte.objetivo.comentario && (
-              <p className="mt-1 text-sm text-dark/70">
+              <p className="mt-1 text-sm text-ink-2">
                 {reporte.objetivo.comentario}
               </p>
             )}
-            <div className="mt-3 border-t border-dark/10 pt-3">
+            <div className="mt-3 border-t border-line pt-3">
               {resenaOculta ? (
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-success">
                   <IconEyeOff className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function ReporteDetalle() {
                     setErrorOcultar(null)
                     setMostrarOcultar(true)
                   }}
-                  className="inline-flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/5 px-3 py-1.5 text-sm font-medium text-danger transition hover:bg-danger/10"
+                  className="inline-flex items-center gap-2 border border-danger/30 bg-danger/5 px-3 py-1.5 text-sm font-medium text-danger transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/10"
                 >
                   <IconEyeOff className="h-4 w-4" />
                   Ocultar reseña
@@ -249,21 +249,25 @@ export default function ReporteDetalle() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-dark/10 bg-white p-6 shadow-sm">
-        <h3 className="text-base font-semibold text-dark">Resolución</h3>
+      <section className="border border-line bg-surface p-6">
+        <h3 className="font-display text-base font-semibold text-ink">
+          Resolución
+        </h3>
 
         {esPendiente ? (
           <form onSubmit={resolver} className="mt-4 space-y-4">
             <div>
-              <p className="mb-2 text-sm font-medium text-dark/70">Decisión</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                Decisión
+              </p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setEstadoResolucion('resuelto')}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                  className={`inline-flex items-center gap-2 border px-4 py-2 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
                     estadoResolucion === 'resuelto'
                       ? 'border-success bg-success/10 text-success'
-                      : 'border-dark/15 text-dark/60 hover:bg-dark/5'
+                      : 'border-line bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink'
                   }`}
                 >
                   <IconCheckCircle className="h-4 w-4" />
@@ -272,10 +276,10 @@ export default function ReporteDetalle() {
                 <button
                   type="button"
                   onClick={() => setEstadoResolucion('descartado')}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                  className={`inline-flex items-center gap-2 border px-4 py-2 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
                     estadoResolucion === 'descartado'
-                      ? 'border-dark bg-dark/10 text-dark'
-                      : 'border-dark/15 text-dark/60 hover:bg-dark/5'
+                      ? 'border-ink bg-ink/10 text-ink'
+                      : 'border-line bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink'
                   }`}
                 >
                   <IconFlag className="h-4 w-4" />
@@ -287,7 +291,7 @@ export default function ReporteDetalle() {
             <div>
               <label
                 htmlFor="nota-resolucion"
-                className="mb-1.5 block text-sm font-medium text-dark/70"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-3"
               >
                 Nota de resolución
               </label>
@@ -298,9 +302,9 @@ export default function ReporteDetalle() {
                 value={nota}
                 onChange={(evento) => setNota(evento.target.value)}
                 placeholder="Explica cómo se resolvió o por qué se descarta el reporte"
-                className="w-full resize-none rounded-xl border border-dark/15 px-3 py-2 text-sm text-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full resize-none border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
               />
-              <p className="mt-1 text-right text-xs text-dark/40">
+              <p className="mt-1 text-right text-xs tabular-nums text-ink-3">
                 {nota.length}/500
               </p>
             </div>
@@ -311,7 +315,8 @@ export default function ReporteDetalle() {
               <button
                 type="submit"
                 disabled={enviando}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:opacity-60"
+                aria-busy={enviando}
+                className="inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-dark active:translate-y-px disabled:opacity-60"
               >
                 {enviando && (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -326,7 +331,7 @@ export default function ReporteDetalle() {
               <Badge info={ESTADOS_REPORTE_INFO[reporte.estado]} />
             </Dato>
             <Dato etiqueta="Nota">
-              <span className="whitespace-pre-line font-normal text-dark/80">
+              <span className="whitespace-pre-line font-normal text-ink">
                 {reporte.notaResolucion ?? '—'}
               </span>
             </Dato>
@@ -352,7 +357,7 @@ export default function ReporteDetalle() {
           <div>
             <label
               htmlFor="motivo-ocultar"
-              className="mb-1.5 block text-sm font-medium text-dark/70"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-3"
             >
               Motivo
             </label>
@@ -363,9 +368,9 @@ export default function ReporteDetalle() {
               value={motivoOcultar}
               onChange={(evento) => setMotivoOcultar(evento.target.value)}
               placeholder="Explica por qué se oculta la reseña"
-              className="w-full resize-none rounded-xl border border-dark/15 px-3 py-2 text-sm text-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full resize-none border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
             />
-            <p className="mt-1 text-right text-xs text-dark/40">
+            <p className="mt-1 text-right text-xs tabular-nums text-ink-3">
               {motivoOcultar.length}/500
             </p>
           </div>
@@ -376,14 +381,15 @@ export default function ReporteDetalle() {
             <button
               type="button"
               onClick={() => setMostrarOcultar(false)}
-              className="rounded-lg border border-dark/15 px-4 py-2 text-sm font-medium text-dark/70 transition hover:bg-dark/5"
+              className="border border-line bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={ocultando}
-              className="inline-flex items-center gap-2 rounded-lg bg-danger px-4 py-2 text-sm font-medium text-white transition hover:bg-danger/90 disabled:opacity-60"
+              aria-busy={ocultando}
+              className="inline-flex items-center gap-2 bg-danger px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/90 active:translate-y-px disabled:opacity-60"
             >
               {ocultando && (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -406,10 +412,10 @@ function Dato({
 }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-dark/45">
+      <dt className="text-xs font-semibold uppercase tracking-wider text-ink-3">
         {etiqueta}
       </dt>
-      <dd className="mt-1 text-sm font-medium text-dark">{children}</dd>
+      <dd className="mt-1 text-sm font-medium text-ink">{children}</dd>
     </div>
   )
 }
@@ -418,7 +424,7 @@ function EnlaceVolver() {
   return (
     <Link
       to="/reportes"
-      className="inline-flex items-center gap-2 text-sm font-medium text-dark/60 transition hover:text-dark"
+      className="inline-flex items-center gap-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:text-ink"
     >
       <IconArrowLeft className="h-4 w-4" />
       Volver a reportes
