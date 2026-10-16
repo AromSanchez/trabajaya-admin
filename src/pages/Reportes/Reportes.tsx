@@ -177,7 +177,7 @@ export default function Reportes() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-dark/10 text-xs uppercase tracking-wide text-dark/45">
