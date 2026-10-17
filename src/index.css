@@ -43,16 +43,10 @@
   --text-4xl: 2.441rem;
   --leading-4xl: 2.5rem;
 
-  /* Espaciado (escala única) */
-  --spacing-3xs: 0.25rem;
-  --spacing-2xs: 0.5rem;
-  --spacing-xs: 0.75rem;
-  --spacing-s: 1rem;
-  --spacing-m: 1.5rem;
-  --spacing-l: 2rem;
-  --spacing-xl: 3rem;
-  --spacing-2xl: 4.5rem;
-  --spacing-3xl: 7rem;
+  /* Espaciado: se usa la escala numérica de Tailwind (0.25rem base).
+     No definir tokens con nombres "xs/sm/md/lg/xl/2xl/3xl" en el namespace
+     --spacing-*: colisionan con --container-* y rompen utilidades como
+     max-w-xl / max-w-2xl / max-w-3xl (pasan a usar el espaciado). */
 
   /* Forma */
   --radius-sm: 0px;

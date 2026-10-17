@@ -75,8 +75,7 @@ export default function CancelacionesTardias() {
               </h2>
               <p className="mt-0.5 max-w-xl text-sm text-ink-2">
                 Usuarios con cancelaciones tardías en los últimos 30 días,
-                ordenados de mayor a menor. No hay sanciones automáticas: se
-                revisa caso por caso.
+                ordenados de mayor a menor.
               </p>
             </div>
           </div>
