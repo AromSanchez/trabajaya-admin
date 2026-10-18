@@ -48,6 +48,10 @@
   --chart-4: #1f9d6a;
   --chart-5: #e5702a;
 
+  /* Hero del login: inmersivo y oscuro en ambos temas */
+  --hero: #06101f;
+  --hero-2: #102a4c;
+
   /* Tokens semánticos de shadcn/ui (mapeados a la marca) */
   --background: var(--canvas);
   --foreground: var(--ink);
@@ -118,6 +122,10 @@
   --chart-4: #3cc58a;
   --chart-5: #f08a4b;
 
+  /* Hero del login: mismo valor en claro y oscuro */
+  --hero: #06101f;
+  --hero-2: #102a4c;
+
   --primary-foreground: #ffffff;
   --destructive-foreground: #08131f;
 }
@@ -154,6 +162,10 @@
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
+
+  /* Hero del login */
+  --color-hero: var(--hero);
+  --color-hero-2: var(--hero-2);
 
   /* Estados */
   --color-success: var(--success);
