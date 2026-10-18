@@ -152,7 +152,7 @@ export default function EscenaLogin({ foco, estado, tapandoOjos }: EscenaLoginPr
                 key={i}
                 className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-white shadow-inner"
                 animate={{
-                  scaleY: feliz ? 1 : tapandoOjos || parpadeo ? 0.08 : pensando ? 0.6 : 1,
+                  scaleY: feliz || tapandoOjos ? 1 : parpadeo ? 0.08 : pensando ? 0.6 : 1,
                 }}
                 transition={{ duration: 0.14 }}
               >
@@ -160,6 +160,16 @@ export default function EscenaLogin({ foco, estado, tapandoOjos }: EscenaLoginPr
                   <svg viewBox="0 0 40 40" className="h-9 w-9 text-hero">
                     <path
                       d="M8 24c4-9 20-9 24 0"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                ) : tapandoOjos ? (
+                  <svg viewBox="0 0 40 40" className="h-9 w-9 text-hero">
+                    <path
+                      d="M9 24c3.5-6 18.5-6 22 0"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="4"
