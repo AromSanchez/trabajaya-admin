@@ -4,7 +4,7 @@ export const TOKEN_KEY = 'trabajaya_admin_token'
 export const USER_KEY = 'trabajaya_admin_user'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'https://trabajaya-backend.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },
