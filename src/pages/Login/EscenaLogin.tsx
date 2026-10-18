@@ -16,7 +16,6 @@ export type EstadoLogin = 'idle' | 'enviando' | 'exito'
 interface EscenaLoginProps {
   foco: FocoLogin
   estado: EstadoLogin
-  tapandoOjos: boolean
 }
 
 const CHIPS = [
@@ -25,7 +24,7 @@ const CHIPS = [
   { icono: BarChart3, texto: 'Métricas', x: 'right-10 bottom-[24%]', retardo: 1.6 },
 ] as const
 
-export default function EscenaLogin({ foco, estado, tapandoOjos }: EscenaLoginProps) {
+export default function EscenaLogin({ foco, estado }: EscenaLoginProps) {
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const [parpadeo, setParpadeo] = useState(false)
@@ -152,7 +151,7 @@ export default function EscenaLogin({ foco, estado, tapandoOjos }: EscenaLoginPr
                 key={i}
                 className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-white shadow-inner"
                 animate={{
-                  scaleY: feliz || tapandoOjos ? 1 : parpadeo ? 0.08 : pensando ? 0.6 : 1,
+                  scaleY: feliz ? 1 : parpadeo ? 0.08 : pensando ? 0.6 : 1,
                 }}
                 transition={{ duration: 0.14 }}
               >
@@ -160,16 +159,6 @@ export default function EscenaLogin({ foco, estado, tapandoOjos }: EscenaLoginPr
                   <svg viewBox="0 0 40 40" className="h-9 w-9 text-hero">
                     <path
                       d="M8 24c4-9 20-9 24 0"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                ) : tapandoOjos ? (
-                  <svg viewBox="0 0 40 40" className="h-9 w-9 text-hero">
-                    <path
-                      d="M9 24c3.5-6 18.5-6 22 0"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="4"
