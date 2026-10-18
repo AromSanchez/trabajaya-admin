@@ -62,20 +62,40 @@ function acumular(valores: number[]): number[] {
 type Tono = 'positivo' | 'negativo' | 'neutral'
 
 const TONO_CLASES: Record<Tono, string> = {
-  positivo: 'text-success-text',
-  negativo: 'text-danger-text',
-  neutral: 'text-ink-3',
+  positivo: 'bg-success-soft text-success-text',
+  negativo: 'bg-danger-soft text-danger-text',
+  neutral: 'bg-surface-2 text-ink-3',
 }
 
 const ACENTO_CLASES: Record<
   'primary' | 'success' | 'warning' | 'danger' | 'revision',
-  { icono: string; spark: string }
+  { icono: string; spark: string; bar: string }
 > = {
-  primary: { icono: 'bg-primary-soft text-link', spark: 'text-primary' },
-  success: { icono: 'bg-success-soft text-success-text', spark: 'text-success' },
-  warning: { icono: 'bg-warning-soft text-warning-text', spark: 'text-warning' },
-  danger: { icono: 'bg-danger-soft text-danger-text', spark: 'text-danger' },
-  revision: { icono: 'bg-revision/10 text-revision', spark: 'text-revision' },
+  primary: {
+    icono: 'bg-primary-soft text-link',
+    spark: 'text-primary',
+    bar: 'bg-primary',
+  },
+  success: {
+    icono: 'bg-success-soft text-success-text',
+    spark: 'text-success',
+    bar: 'bg-success',
+  },
+  warning: {
+    icono: 'bg-warning-soft text-warning-text',
+    spark: 'text-warning',
+    bar: 'bg-warning',
+  },
+  danger: {
+    icono: 'bg-danger-soft text-danger-text',
+    spark: 'text-danger',
+    bar: 'bg-danger',
+  },
+  revision: {
+    icono: 'bg-revision/10 text-revision',
+    spark: 'text-revision',
+    bar: 'bg-revision',
+  },
 }
 
 interface TarjetaKPIProps {
@@ -100,22 +120,33 @@ function TarjetaKPI({
   const estilo = ACENTO_CLASES[acento]
 
   return (
-    <article className="relative overflow-hidden rounded-lg border border-line bg-surface p-5 shadow-sm">
+    <article className="group relative overflow-hidden rounded-xl border border-line bg-surface p-5 shadow-sm transition duration-[var(--duration)] ease-[var(--ease)] hover:-translate-y-0.5 hover:shadow-md">
+      <span
+        className={`absolute inset-x-0 top-0 h-1 ${estilo.bar}`}
+        aria-hidden="true"
+      />
+
       <div className="flex items-start justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
           {titulo}
         </p>
         <span
-          className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${estilo.icono}`}
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${estilo.icono}`}
         >
           <Icon className="h-5 w-5" />
         </span>
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <p className="font-display text-4xl font-semibold leading-none tracking-tight tabular-nums text-ink">
-          {valor}
-        </p>
+      <p className="mt-4 font-display text-4xl font-semibold leading-none tracking-tight tabular-nums text-ink">
+        {valor}
+      </p>
+
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${TONO_CLASES[delta.tono]}`}
+        >
+          {delta.texto}
+        </span>
         {spark && spark.length > 1 ? (
           <Sparkline datos={spark} className={estilo.spark} />
         ) : (
@@ -123,12 +154,8 @@ function TarjetaKPI({
         )}
       </div>
 
-      <p className={`mt-3 text-sm font-medium ${TONO_CLASES[delta.tono]}`}>
-        {delta.texto}
-      </p>
-
       {alerta && (
-        <p className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-danger-soft px-2 py-1 text-xs font-medium text-danger-text">
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-danger-soft px-2 py-1 text-xs font-medium text-danger-text">
           <IconAlertTriangle className="h-3.5 w-3.5" />
           {alerta.texto}
         </p>
@@ -171,16 +198,20 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
   const siguiente = metricas.colaRevision.tecnicos[0]
 
   return (
-    <section className="rounded-xl border border-primary/15 bg-primary-soft p-6">
-      <div className="max-w-2xl">
-        <p className="text-xs font-bold uppercase tracking-widest text-link">
+    <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary-soft via-primary-soft/50 to-surface p-6 shadow-sm sm:p-8">
+      <span
+        className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div className="relative max-w-2xl">
+        <p className="inline-flex items-center gap-2 rounded-full bg-primary-strong/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-link">
           Prioridad de hoy
         </p>
-        <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
           {tecnicosEnEspera} técnico{tecnicosEnEspera === 1 ? '' : 's'} espera
           {tecnicosEnEspera === 1 ? '' : 'n'} tu revisión
         </h2>
-        <p className="mt-2 text-sm text-ink-2">
+        <p className="mt-3 text-sm text-ink-2 sm:text-base">
           El más antiguo lleva {masAntiguoDias}{' '}
           {masAntiguoDias === 1 ? 'día' : 'días'} en espera. Con{' '}
           {verificados.nuevosSemana}{' '}
@@ -190,7 +221,7 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
           esta semana, la cola sigue avanzando.
         </p>
 
-        <div className="mt-5 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           {siguiente ? (
             <Link
               to={`/tecnicos/${siguiente.id}`}
@@ -270,6 +301,7 @@ function RegistrosVerificaciones({ metricas }: { metricas: MetricasDashboard }) 
                 colorVar: 'var(--color-chart-1)',
                 datos: serie.map((punto) => punto.registrosNuevos),
                 mostrarPuntos: true,
+                relleno: true,
               },
               {
                 nombre: 'Verificados',

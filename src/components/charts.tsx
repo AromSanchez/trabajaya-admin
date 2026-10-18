@@ -78,6 +78,7 @@ export interface SerieLinea {
   datos: number[]
   punteada?: boolean
   mostrarPuntos?: boolean
+  relleno?: boolean
 }
 
 /** Gráfico de líneas multi-serie con ejes y etiquetas. */
@@ -154,15 +155,31 @@ export function LineChart({
         </text>
       ))}
 
-      {series.map((serie) => {
+      {series.map((serie, indiceSerie) => {
         const d = serie.datos
           .map(
             (valor, indice) =>
               `${indice === 0 ? 'M' : 'L'}${x(indice).toFixed(1)} ${y(valor).toFixed(1)}`,
           )
           .join(' ')
+        const ultimo = serie.datos.length - 1
+        const idRelleno = `linea-relleno-${indiceSerie}-${total}`
         return (
           <g key={serie.nombre}>
+            {serie.relleno && ultimo >= 0 && (
+              <>
+                <defs>
+                  <linearGradient id={idRelleno} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={serie.colorVar} stopOpacity="0.28" />
+                    <stop offset="100%" stopColor={serie.colorVar} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={`${d} L${x(ultimo).toFixed(1)} ${(margen.arriba + altoUtil).toFixed(1)} L${x(0).toFixed(1)} ${(margen.arriba + altoUtil).toFixed(1)} Z`}
+                  fill={`url(#${idRelleno})`}
+                />
+              </>
+            )}
             <path
               d={d}
               fill="none"
@@ -173,17 +190,29 @@ export function LineChart({
               strokeDasharray={serie.punteada ? '5 5' : undefined}
             />
             {serie.mostrarPuntos &&
-              serie.datos.map((valor, indice) => (
-                <circle
-                  key={indice}
-                  cx={x(indice)}
-                  cy={y(valor)}
-                  r={3}
-                  fill="var(--color-surface)"
-                  stroke={serie.colorVar}
-                  strokeWidth={2}
-                />
-              ))}
+              serie.datos.map((valor, indice) =>
+                indice === ultimo ? null : (
+                  <circle
+                    key={indice}
+                    cx={x(indice)}
+                    cy={y(valor)}
+                    r={3}
+                    fill="var(--color-surface)"
+                    stroke={serie.colorVar}
+                    strokeWidth={2}
+                  />
+                ),
+              )}
+            {ultimo >= 0 && (
+              <circle
+                cx={x(ultimo)}
+                cy={y(serie.datos[ultimo])}
+                r={4.5}
+                fill={serie.colorVar}
+                stroke="var(--color-surface)"
+                strokeWidth={2.5}
+              />
+            )}
           </g>
         )
       })}
@@ -247,6 +276,7 @@ export function BarChart({
               height={Math.max(altura, valor > 0 ? 3 : 0)}
               rx={4}
               fill={esPico ? colorPicoVar : colorVar}
+              fillOpacity={resaltarPico && !esPico ? 0.45 : 1}
             />
             <text
               x={centro}
@@ -339,10 +369,10 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rounded-lg border border-line bg-surface shadow-sm ${className ?? ''}`}
+      className={`rounded-xl border border-line bg-surface shadow-sm ${className ?? ''}`}
     >
       {(titulo || accion) && (
-        <header className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5">
+        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">
             {titulo && (
               <h3 className="font-display text-base font-semibold text-ink">

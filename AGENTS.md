@@ -24,14 +24,17 @@ Definida en `src/index.css` con `@theme`. Cada token tiene su valor en modo clar
 **Neutros**
 | Token | Claro | Oscuro |
 |---|---|---|
-| `base` (fondo de página) | `#F3F6FB` | `#08131F` |
-| `surface` (tarjetas) | `#FFFFFF` | `#0E1D2F` |
-| `surface-2` (superficie secundaria) | `#F7F9FD` | `#132740` |
+| `canvas` (fondo de página) | `#F3F6FB` | `#08131F` |
+| `surface` (tarjetas) | `#FFFFFF` | `#10202F` |
+| `surface-2` (superficie secundaria) | `#F7F9FD` | `#172B40` |
+| `sidebar` (fondo del sidebar) | `#FFFFFF` | `#050C14` |
 | `line` (bordes) | `#E1E8F2` | `#1F3550` |
 | `line-strong` (bordes marcados) | `#C9D6E6` | `#2B4766` |
 | `ink` (texto principal) | `#0A1F3A` | `#E6EEF8` |
 | `ink-2` (texto secundario) | `#3F5775` | `#A8BCD3` |
 | `ink-3` (texto de apoyo) | `#566D88` | `#8097B2` |
+
+> El token de color de fondo es `canvas`, **no** `base`: `base` colisiona con la utilidad de tamaño de fuente `text-base` (Tailwind resolvería `text-base` como `color: var(--color-base)`). Usa siempre `bg-canvas`.
 
 **Estados** (cada uno con base, `-text` y `-soft`)
 | Estado | base | texto | suave |
@@ -42,7 +45,7 @@ Definida en `src/index.css` con `@theme`. Cada token tiene su valor en modo clar
 | `revision` / En revisión | `#4F6BED` | — | — |
 | `pending` / Pendiente y `suspended` / Suspendido | `#8A9BB0` / `#3F4F63` | — | — |
 
-**Gráficos:** `chart-1` (registros) `#0080FF` · `chart-2` (verificados) `#2A4A73` (oscuro `#9FB8D6`).
+**Gráficos:** `chart-1` (registros) `#0080FF` · `chart-2` (verificados) `#2A4A73` (oscuro `#9FB8D6`) · `chart-3` `#4F6BED` · `chart-4` `#1F9D6A` · `chart-5` `#E5702A`.
 
 Úsalos en las clases de Tailwind (`bg-primary-strong`, `text-ink-2`, `border-line`, etc.).
 No escribas colores hexadecimales directamente en los componentes.
@@ -54,9 +57,15 @@ No escribas colores hexadecimales directamente en los componentes.
 
 ## Estilos
 - Tailwind CSS v4 instalado como plugin de Vite. Sin `tailwind.config.js`.
-- Solo Tailwind. Sin librerías de UI (MUI, Ant Design, Chakra ni similares).
+- **UI con shadcn/ui** (`src/components/ui/`, estilo `radix-nova`, `radix-ui` + `lucide-react` + `cn` de `src/lib/utils.ts`). Alias `@/*` → `src/*` (en `tsconfig.app.json` y `vite.config.ts`). Añadir componentes con el CLI de shadcn copiando a `src/components/ui/`; el CSS base vive en `src/styles/shadcn-tailwind.css`.
+- **Gráficos con Recharts** (`src/components/charts.tsx`), usando los tokens `chart-1`…`chart-5`.
 - Los componentes usan clases de Tailwind con los colores definidos en `@theme`.
 - Radios suaves (`rounded-md`/`rounded-lg`), sombras sutiles (`shadow-sm`/`shadow-md`) y tipografía Sora/Manrope. La jerarquía visual se apoya en color, tamaño y espacio (principios de neurociencia: saliencia, agrupación y baja carga cognitiva).
+
+## Modo claro/oscuro
+- Tokens de marca definidos en `src/index.css` en `:root` (claro) y `.dark` (oscuro), mapeados a tokens semánticos de shadcn vía `@theme inline`.
+- El modo oscuro se activa con la clase `dark` en `<html>`; el tema (`claro`/`oscuro`/`sistema`) se guarda en `localStorage` (`trabajaya_admin_tema`) y lo gestiona `ThemeContext` + `useTheme` + `ThemeToggle`.
+- `index.html` incluye un script anti-flash que aplica el tema antes del primer render.
 
 ## Backend
 - URL base: `http://localhost:3000` en desarrollo. Leerla desde `.env` como `VITE_API_URL`.

@@ -43,7 +43,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen bg-base">
+    <div className="flex min-h-screen bg-canvas">
       <aside className="hidden w-[42%] flex-col justify-between border-r border-line bg-ink p-10 lg:flex">
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 place-items-center rounded-md bg-primary-strong text-sm font-bold text-white">

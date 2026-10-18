@@ -46,7 +46,7 @@ export default function Header({ onAbrirMenuMovil }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-line bg-surface/90 shadow-xs backdrop-blur"> 
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           type="button"

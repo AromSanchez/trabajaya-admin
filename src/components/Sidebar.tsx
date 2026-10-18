@@ -31,7 +31,7 @@ export default function Sidebar({
 
     <aside
       aria-label="Navegación principal"
-      className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-line bg-surface transition-[width,translate] duration-[var(--duration)] ease-[var(--ease)] ${
+      className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-line bg-sidebar transition-[width,translate] duration-[var(--duration)] ease-[var(--ease)] ${
         colapsado ? 'lg:w-20' : 'lg:w-64'
       } ${movilAbierto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
     >
@@ -61,9 +61,9 @@ export default function Sidebar({
               onClick={onCerrarMovil}
               title={colapsado ? label : undefined}
               className={({ isActive }) =>
-                `group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition duration-[var(--duration)] ease-[var(--ease)] ${
+                `group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition duration-[var(--duration)] ease-[var(--ease)] ${
                   isActive
-                    ? 'bg-primary-soft text-link'
+                    ? "bg-primary-soft text-link before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-primary before:content-['']"
                     : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
                 } ${colapsado ? 'lg:justify-center lg:px-0' : ''}`
               }

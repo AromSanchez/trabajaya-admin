@@ -8,7 +8,7 @@ export default function AppLayout() {
   const [movilAbierto, setMovilAbierto] = useState(false)
 
   return (
-    <div className="min-h-screen bg-base">
+    <div className="min-h-screen bg-canvas">
       <Sidebar
         colapsado={colapsado}
         movilAbierto={movilAbierto}
