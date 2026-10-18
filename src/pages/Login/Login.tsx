@@ -46,7 +46,7 @@ export default function Login() {
     <div className="flex min-h-screen bg-base">
       <aside className="hidden w-[42%] flex-col justify-between border-r border-line bg-ink p-10 lg:flex">
         <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center bg-primary text-sm font-bold text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-md bg-primary-strong text-sm font-bold text-white">
             TY
           </span>
           <span className="font-display text-sm font-semibold text-white">
@@ -101,7 +101,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+                className="w-full rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
                 placeholder="admin@trabajoya.com"
               />
             </div>
@@ -120,7 +120,7 @@ export default function Login() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+                className="w-full rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
                 placeholder="••••••"
               />
             </div>
@@ -128,7 +128,7 @@ export default function Login() {
             {error && (
               <p
                 role="alert"
-                className="border border-danger/30 bg-danger/5 px-3 py-2 text-sm font-medium text-danger"
+                className="rounded-md border border-danger/30 bg-danger-soft px-3 py-2 text-sm font-medium text-danger-text"
               >
                 {error}
               </p>
@@ -138,7 +138,7 @@ export default function Login() {
               type="submit"
               disabled={enviando}
               aria-busy={enviando}
-              className="w-full bg-primary px-4 py-2.5 font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-dark active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-md bg-primary-strong px-4 py-2.5 font-semibold text-white shadow-sm transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-hover active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
             >
               {enviando ? 'Ingresando…' : 'Ingresar'}
             </button>

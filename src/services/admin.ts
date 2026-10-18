@@ -11,6 +11,27 @@ export const ESTADOS_VERIFICACION = [
 
 export type EstadoVerificacion = (typeof ESTADOS_VERIFICACION)[number]
 
+export const OFICIOS = [
+  'gasfiteria',
+  'electricidad',
+  'carpinteria',
+  'albanileria',
+  'pintura',
+] as const
+
+export type Oficio = (typeof OFICIOS)[number]
+
+export const ORDENES_TECNICOS = [
+  'recientes',
+  'antiguos',
+  'experiencia',
+  'servicios',
+  'calificacion',
+  'nombre',
+] as const
+
+export type OrdenTecnicos = (typeof ORDENES_TECNICOS)[number]
+
 export interface Disponibilidad {
   dia: string
   desde: string
@@ -105,20 +126,24 @@ export interface FiltrosReportes {
   limit?: number
 }
 
-export async function listarTecnicos(
-  estado?: EstadoVerificacion,
-): Promise<Tecnico[]> {
-  const { data } = await api.get<TecnicosResponse>('/admin/tecnicos', {
-    params: estado ? { estado } : undefined,
-  })
-  return data.data.tecnicos
+export interface FiltrosTecnicos {
+  estado?: EstadoVerificacion
+  oficio?: Oficio
+  nombre?: string
+  orden?: OrdenTecnicos
 }
 
-export async function contarReportesPorEstado(estado: string): Promise<number> {
-  const { data } = await api.get<ReportesListadoResponse>('/admin/reportes', {
-    params: { estado, limit: 1 },
-  })
-  return data.data.paginacion.total
+export async function listarTecnicos(
+  filtros: FiltrosTecnicos = {},
+): Promise<Tecnico[]> {
+  const params: Record<string, string> = {}
+  if (filtros.estado) params.estado = filtros.estado
+  if (filtros.oficio) params.oficio = filtros.oficio
+  if (filtros.nombre) params.nombre = filtros.nombre
+  if (filtros.orden) params.orden = filtros.orden
+
+  const { data } = await api.get<TecnicosResponse>('/admin/tecnicos', { params })
+  return data.data.tecnicos
 }
 
 export async function listarReportes(
@@ -203,33 +228,109 @@ export async function listarCancelacionesTardias(): Promise<
   return data.data.usuarios
 }
 
-export interface MetricasDashboard {
-  tecnicosPorEstado: Record<EstadoVerificacion, number>
-  totalTecnicos: number
-  reportesAbiertos: number
+export type EstadoDocumentosCola = 'completos' | 'faltan'
+
+export interface ColaRevisionItem {
+  id: number
+  nombre: string
+  oficio: string
+  distrito: string
+  diasEsperando: number
+  estadoDocumentos: EstadoDocumentosCola
+  faltantes: string[]
+  documentosEnviadosAt: string
 }
 
-export async function obtenerMetricasDashboard(): Promise<MetricasDashboard> {
-  const [tecnicos, reportesAbiertos] = await Promise.all([
-    listarTecnicos(),
-    contarReportesPorEstado('pendiente'),
-  ])
+export interface EstadoConteo {
+  estado: EstadoVerificacion
+  total: number
+  porcentaje: number
+}
 
-  const tecnicosPorEstado = Object.fromEntries(
-    ESTADOS_VERIFICACION.map((estado) => [estado, 0]),
-  ) as Record<EstadoVerificacion, number>
+export interface MotivoConteo {
+  categoria: CategoriaReporte
+  total: number
+  porcentaje: number
+}
 
-  for (const tecnico of tecnicos) {
-    if (tecnico.estadoVerificacion in tecnicosPorEstado) {
-      tecnicosPorEstado[tecnico.estadoVerificacion] += 1
+export interface OficioConteo {
+  oficio: string
+  total: number
+  porcentaje: number
+}
+
+export interface RegistroSemana {
+  semanaInicio: string
+  registrosNuevos: number
+  verificados: number
+}
+
+export interface CancelacionSemana {
+  semanaInicio: string
+  total: number
+}
+
+export interface MetricasDashboard {
+  generadoEn: string
+  prioridadHoy: {
+    tecnicosEnEspera: number
+    masAntiguoDias: number
+  }
+  tarjetas: {
+    reportesAbiertos: { total: number; vsSemanaPasada: number; masDe48h: number }
+    tecnicosTotales: { total: number; nuevosSemana: number }
+    verificados: {
+      total: number
+      nuevosSemana: number
+      porcentajeDelTotal: number
     }
+    enRevision: { total: number; vsSemanaPasada: number }
   }
+  registrosVerificaciones: { semanas: number; serie: RegistroSemana[] }
+  tecnicosPorEstado: { total: number; estados: EstadoConteo[] }
+  reportesPorMotivo: { dias: number; total: number; motivos: MotivoConteo[] }
+  cancelacionesTardiasSemanales: {
+    semanas: number
+    serie: CancelacionSemana[]
+    pico: number
+  }
+  tecnicosPorOficio: { total: number; oficios: OficioConteo[] }
+  tiempoVerificacion: {
+    promedioHoras: number | null
+    vsMesPasadoPorcentaje: number | null
+  }
+  colaRevision: { tecnicos: ColaRevisionItem[] }
+}
 
-  return {
-    tecnicosPorEstado,
-    totalTecnicos: tecnicos.length,
-    reportesAbiertos,
+export interface ParametrosMetricas {
+  semanasRegistros?: number
+  semanasCancelaciones?: number
+  diasReportes?: number
+  limitCola?: number
+}
+
+interface MetricasDashboardResponse {
+  data: MetricasDashboard
+}
+
+export async function obtenerMetricasDashboard(
+  parametros: ParametrosMetricas = {},
+): Promise<MetricasDashboard> {
+  const params: Record<string, number> = {}
+  if (parametros.semanasRegistros) {
+    params.semanas_registros = parametros.semanasRegistros
   }
+  if (parametros.semanasCancelaciones) {
+    params.semanas_cancelaciones = parametros.semanasCancelaciones
+  }
+  if (parametros.diasReportes) params.dias_reportes = parametros.diasReportes
+  if (parametros.limitCola) params.limit_cola = parametros.limitCola
+
+  const { data } = await api.get<MetricasDashboardResponse>(
+    '/admin/metricas/dashboard',
+    { params },
+  )
+  return data.data
 }
 
 export type EstadoDocumento = 'pendiente' | 'aprobado' | 'observado'

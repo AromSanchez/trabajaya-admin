@@ -49,7 +49,7 @@ export default function Reportes() {
 
   return (
     <div className="space-y-5">
-      <section className="space-y-4 border border-line bg-surface p-5">
+      <section className="space-y-4 rounded-lg border border-line bg-surface p-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           {ESTADOS_CHIPS.map((chip) => {
             const activo = filtros.estado === chip.valor
@@ -57,14 +57,14 @@ export default function Reportes() {
               activo && chip.valor !== 'todos'
                 ? `${ESTADOS_REPORTE_INFO[chip.valor as EstadoReporte].badge} border border-transparent`
                 : activo
-                  ? 'border border-transparent bg-primary text-white'
+                  ? 'border border-transparent bg-primary-strong text-white'
                   : 'border border-line bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink'
             return (
               <button
                 key={chip.valor}
                 type="button"
                 onClick={() => cambiarFiltros({ estado: chip.valor })}
-                className={`px-3 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${clases}`}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${clases}`}
               >
                 {chip.label}
               </button>
@@ -74,7 +74,7 @@ export default function Reportes() {
             type="button"
             onClick={recargar}
             aria-label="Recargar"
-            className="ml-auto inline-flex items-center gap-2 border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+            className="ml-auto inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
           >
             <IconRefresh className="h-4 w-4" />
             <span className="hidden sm:inline">Recargar</span>
@@ -92,7 +92,7 @@ export default function Reportes() {
                     .value as FiltrosUI['tipoObjetivo'],
                 })
               }
-              className="border border-line bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
+              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
             >
               <option value="todos">Todos</option>
               {TIPOS_OBJETIVO.map((tipo) => (
@@ -111,7 +111,7 @@ export default function Reportes() {
                   categoria: evento.target.value as FiltrosUI['categoria'],
                 })
               }
-              className="border border-line bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
+              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
             >
               <option value="todas">Todas</option>
               {CATEGORIAS_REPORTE.map((categoria) => (
@@ -125,9 +125,9 @@ export default function Reportes() {
       </section>
 
       {error && (
-        <section className="flex flex-col items-start justify-between gap-3 border border-danger/30 bg-danger/5 p-5 sm:flex-row sm:items-center">
+        <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center bg-danger/10 text-danger">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -140,7 +140,7 @@ export default function Reportes() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -148,7 +148,7 @@ export default function Reportes() {
         </section>
       )}
 
-      <section className="overflow-hidden border border-line bg-surface">
+      <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
         {cargando ? (
           <div className="divide-y divide-line">
             {Array.from({ length: 5 }).map((_, indice) => (
@@ -166,7 +166,7 @@ export default function Reportes() {
           </div>
         ) : reportes.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-14 text-center">
-            <span className="grid h-14 w-14 place-items-center bg-primary/10 text-primary">
+            <span className="grid h-14 w-14 place-items-center rounded-lg bg-primary-soft text-link">
               <IconFlag className="h-7 w-7" />
             </span>
             <h3 className="mt-4 font-display text-base font-semibold text-ink">
@@ -234,7 +234,7 @@ export default function Reportes() {
                         to={`/reportes/${reporte.id}`}
                         onClick={(evento) => evento.stopPropagation()}
                         aria-label={`Ver reporte ${reporte.id}`}
-                        className="inline-grid h-8 w-8 place-items-center text-ink-3 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-line hover:text-ink"
+                        className="inline-grid h-8 w-8 place-items-center rounded-md text-ink-3 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
                       >
                         <IconChevronRight className="h-5 w-5" />
                       </Link>
@@ -258,7 +258,7 @@ export default function Reportes() {
               type="button"
               onClick={() => irAPagina(pagina - 1)}
               disabled={pagina <= 1}
-              className="border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
+              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
             >
               Anterior
             </button>
@@ -269,7 +269,7 @@ export default function Reportes() {
               type="button"
               onClick={() => irAPagina(pagina + 1)}
               disabled={pagina >= totalPaginas}
-              className="border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
+              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
             >
               Siguiente
             </button>
@@ -279,3 +279,4 @@ export default function Reportes() {
     </div>
   )
 }
+

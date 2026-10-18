@@ -1,30 +1,210 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "./styles/shadcn-tailwind.css";
+
+/* Modo oscuro por clase (se activará añadiendo `.dark` al <html>).
+   Los tokens oscuros quedan definidos y listos, sin toggle todavía. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens de marca. Fuente única de verdad (claro y oscuro). */
+:root {
+  color-scheme: light;
+
+  /* Marca y acciones */
+  --primary: #0080ff; /* azul principal */
+  --primary-strong: #0070e6; /* azul de botón con texto blanco */
+  --primary-hover: #0062c9; /* hover */
+  --primary-soft: #e5f1ff; /* azul suave para fondos */
+  --link: #0062c9; /* azul para texto y enlaces */
+
+  /* Neutros */
+  --base: #f3f6fb; /* fondo de página */
+  --surface: #ffffff; /* tarjetas */
+  --surface-2: #f7f9fd; /* superficie secundaria */
+  --line: #e1e8f2; /* bordes */
+  --line-strong: #c9d6e6; /* bordes marcados */
+  --ink: #0a1f3a; /* texto principal */
+  --ink-2: #3f5775; /* texto secundario */
+  --ink-3: #566d88; /* texto de apoyo */
+
+  /* Estados */
+  --success: #1f9d6a;
+  --success-text: #17724c;
+  --success-soft: #e0f4ea;
+  --danger: #d14646;
+  --danger-text: #b02f2f;
+  --danger-soft: #fbe6e6;
+  --warning: #e5702a;
+  --warning-text: #9a4a10;
+  --warning-soft: #fdeee0;
+  --revision: #4f6bed;
+  --pending: #8a9bb0;
+  --suspended: #3f4f63;
+
+  /* Gráficos */
+  --chart-1: #0080ff; /* serie 1 · registros */
+  --chart-2: #2a4a73; /* serie 2 · verificados */
+  --chart-3: #4f6bed;
+  --chart-4: #1f9d6a;
+  --chart-5: #e5702a;
+
+  /* Tokens semánticos de shadcn/ui (mapeados a la marca) */
+  --background: var(--base);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--ink-3);
+  --accent: var(--primary-soft);
+  --accent-foreground: var(--link);
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --border: var(--line);
+  --input: var(--line-strong);
+  --ring: var(--primary);
+  --radius: 0.625rem;
+
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink-2);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--primary-soft);
+  --sidebar-accent-foreground: var(--link);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--primary);
+}
+
+/* Modo oscuro: tokens definidos y listos. Se activan con `.dark` en <html>. */
+.dark {
+  color-scheme: dark;
+
+  --primary: #0080ff;
+  --primary-strong: #0070e6;
+  --primary-hover: #1a85f0;
+  --primary-soft: #0f2b4f;
+  --link: #6db4ff;
+
+  --base: #08131f;
+  --surface: #0e1d2f;
+  --surface-2: #132740;
+  --line: #1f3550;
+  --line-strong: #2b4766;
+  --ink: #e6eef8;
+  --ink-2: #a8bcd3;
+  --ink-3: #8097b2;
+
+  --success: #3cc58a;
+  --success-text: #6fddab;
+  --success-soft: #133a2b;
+  --danger: #ee6a6a;
+  --danger-text: #f59a9a;
+  --danger-soft: #3f1c1e;
+  --warning: #f08a4b;
+  --warning-text: #f7b08a;
+  --warning-soft: #3d2314;
+  --revision: #8a9cff;
+  --pending: #8fa2b8;
+  --suspended: #c5d2e0;
+
+  --chart-1: #0080ff;
+  --chart-2: #9fb8d6;
+  --chart-3: #8a9cff;
+  --chart-4: #3cc58a;
+  --chart-5: #f08a4b;
+
+  --primary-foreground: #ffffff;
+  --destructive-foreground: #08131f;
+}
+
+@theme inline {
+  /* Tipografía */
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Radios (shadcn/ui) */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Marca */
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-dark: var(--primary-strong); /* alias histórico */
+  --color-primary-soft: var(--primary-soft);
+  --color-link: var(--link);
+
+  /* Neutros */
+  --color-base: var(--base);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  /* Estados */
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-warning-soft: var(--warning-soft);
+  --color-revision: var(--revision);
+  --color-pending: var(--pending);
+  --color-suspended: var(--suspended);
+
+  /* Gráficos */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Semánticos shadcn/ui */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
 
 @theme {
-  /* Colores base (conservando compatibilidad) */
-  --color-primary: #1976d2;
-  --color-primary-dark: #1565c0;
-  --color-dark: #071b36;
-  --color-accent: #1976d2;
-
-  /* Paleta extendida (Swiss Rationalist) */
-  --color-base: #f5f7fa; /* fondo app */
-  --color-surface: #ffffff; /* superficies */
-  --color-surface-2: #fafbfd; /* fondo sutil */
-  --color-ink: #071b36; /* texto principal */
-  --color-ink-2: #4f5b66; /* texto secundario */
-  --color-ink-3: #667180; /* meta/placeholder */
-  --color-line: #e6e9ef; /* bordes/reglas */
-
-  /* Estados semánticos */
-  --color-success: #16a34a;
-  --color-warning: #f59e0b;
-  --color-danger: #dc2626;
-
-  /* Tipografía */
-  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-
   /* Escala tipográfica (1.250 major third) */
   --text-xs: 0.75rem;
   --leading-xs: 1rem;
@@ -42,22 +222,13 @@
   --leading-3xl: 2.25rem;
   --text-4xl: 2.441rem;
   --leading-4xl: 2.5rem;
+  --text-5xl: 3.052rem;
+  --leading-5xl: 3rem;
 
-  /* Espaciado: se usa la escala numérica de Tailwind (0.25rem base).
-     No definir tokens con nombres "xs/sm/md/lg/xl/2xl/3xl" en el namespace
-     --spacing-*: colisionan con --container-* y rompen utilidades como
-     max-w-xl / max-w-2xl / max-w-3xl (pasan a usar el espaciado). */
-
-  /* Forma */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-
-  /* Sombras (cero, alineado con restricción) */
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
+  /* Sombras suaves */
+  --shadow-sm: 0 1px 2px rgba(10, 31, 58, 0.05);
+  --shadow-md: 0 4px 14px rgba(10, 31, 58, 0.07);
+  --shadow-lg: 0 12px 32px rgba(10, 31, 58, 0.1);
 
   /* Movimiento */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -67,26 +238,23 @@
   --duration-slow: 420ms;
 }
 
-html,
-body,
-#root {
-  min-height: 100%;
-}
-
-body {
-  color: var(--color-ink);
-  background-color: var(--color-base);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a:focus-visible,
-button:focus-visible,
-[role="button"]:focus-visible,
-[role="menuitem"]:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

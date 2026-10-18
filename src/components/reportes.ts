@@ -8,18 +8,18 @@ import type { EstadoInfo } from './estados'
 export const ESTADOS_REPORTE_INFO: Record<EstadoReporte, EstadoInfo> = {
   pendiente: {
     label: 'Pendiente',
-    badge: 'bg-warning/10 text-warning',
+    badge: 'bg-warning-soft text-warning-text',
     dot: 'bg-warning',
   },
   resuelto: {
     label: 'Resuelto',
-    badge: 'bg-success/10 text-success',
+    badge: 'bg-success-soft text-success-text',
     dot: 'bg-success',
   },
   descartado: {
     label: 'Descartado',
-    badge: 'bg-ink-3/10 text-ink-3',
-    dot: 'bg-ink-3',
+    badge: 'bg-pending/15 text-ink-3',
+    dot: 'bg-pending',
   },
 }
 

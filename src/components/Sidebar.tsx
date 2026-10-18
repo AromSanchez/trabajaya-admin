@@ -36,7 +36,7 @@ export default function Sidebar({
       } ${movilAbierto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
     >
       <div className="flex h-16 items-center gap-3 border-b border-line px-4">
-        <div className="grid h-9 w-9 shrink-0 place-items-center bg-primary text-sm font-bold text-white">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary-strong text-sm font-bold text-white">
           TY
         </div>
         <div className={`min-w-0 ${colapsado ? 'lg:hidden' : ''}`}>
@@ -61,9 +61,9 @@ export default function Sidebar({
               onClick={onCerrarMovil}
               title={colapsado ? label : undefined}
               className={({ isActive }) =>
-                `group flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition duration-[var(--duration)] ease-[var(--ease)] ${
+                `group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition duration-[var(--duration)] ease-[var(--ease)] ${
                   isActive
-                    ? 'bg-primary/10 text-primary'
+                    ? 'bg-primary-soft text-link'
                     : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
                 } ${colapsado ? 'lg:justify-center lg:px-0' : ''}`
               }
@@ -78,11 +78,11 @@ export default function Sidebar({
 
         <div className="border-t border-line p-3">
           <div
-            className={`flex items-center gap-3 bg-surface-2 px-3 py-2.5 ${
+            className={`flex items-center gap-3 rounded-md bg-surface-2 px-3 py-2.5 ${
               colapsado ? 'lg:justify-center lg:px-0' : ''
             }`}
           >
-            <div className="grid h-9 w-9 shrink-0 place-items-center bg-primary text-xs font-semibold text-white">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-strong text-xs font-semibold text-white">
               {iniciales}
             </div>
             <div className={`min-w-0 ${colapsado ? 'lg:hidden' : ''}`}>
@@ -99,7 +99,7 @@ export default function Sidebar({
             type="button"
             onClick={onToggleColapso}
             aria-label={colapsado ? 'Expandir menú' : 'Contraer menú'}
-            className="mt-2 hidden w-full items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-ink-3 transition duration-[var(--duration)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink lg:flex"
+            className="mt-2 hidden w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-ink-3 transition duration-[var(--duration)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink lg:flex"
           >
             <IconChevronsLeft
               className={`h-4 w-4 shrink-0 transition-transform ${

@@ -47,10 +47,10 @@ const FORMATOS_IMAGEN = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'])
 type VarianteBoton = 'primary' | 'success' | 'warning' | 'danger'
 
 const BOTONES: Record<VarianteBoton, string> = {
-  primary: 'bg-primary hover:bg-primary-dark',
-  success: 'bg-success hover:bg-success/90',
-  warning: 'bg-warning hover:bg-warning/90',
-  danger: 'bg-danger hover:bg-danger/90',
+  primary: 'bg-primary-strong hover:bg-primary-hover',
+  success: 'bg-success hover:bg-success-text',
+  warning: 'bg-warning hover:bg-warning-text',
+  danger: 'bg-danger hover:bg-danger-text',
 }
 
 interface ConfigAccion {
@@ -78,7 +78,7 @@ function formatearBytes(bytes: number): string {
 function Badge({ info }: { info: EstadoInfo }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium ${info.badge}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${info.badge}`}
     >
       <span
         className={`h-1.5 w-1.5 ${info.dot}`}
@@ -145,7 +145,7 @@ function FormAccion({
           value={texto}
           onChange={(evento) => setTexto(evento.target.value)}
           placeholder={config.placeholder}
-          className="w-full resize-none border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+          className="w-full resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
         />
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
@@ -154,7 +154,7 @@ function FormAccion({
           type="button"
           onClick={onCerrar}
           disabled={enviando}
-          className="border border-line bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:opacity-50"
+          className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:opacity-50"
         >
           Cancelar
         </button>
@@ -162,7 +162,7 @@ function FormAccion({
           type="submit"
           disabled={enviando}
           aria-busy={enviando}
-          className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] active:translate-y-px disabled:opacity-60 ${BOTONES[config.variante]}`}
+          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] active:translate-y-px disabled:opacity-60 ${BOTONES[config.variante]}`}
         >
           {enviando && (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -178,7 +178,7 @@ function EsqueletoDetalle() {
   return (
     <div className="space-y-5">
       <div className="h-8 w-40 animate-pulse bg-line" />
-      <div className="animate-pulse border border-line bg-surface p-6">
+      <div className="animate-pulse rounded-lg rounded-lg border border-line bg-surface p-6 shadow-sm shadow-sm">
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 bg-line" />
           <div className="space-y-2">
@@ -192,7 +192,7 @@ function EsqueletoDetalle() {
           ))}
         </div>
       </div>
-      <div className="h-48 animate-pulse border border-line bg-surface" />
+      <div className="h-48 animate-pulse rounded-lg border border-line bg-surface" />
     </div>
   )
 }
@@ -211,9 +211,9 @@ export default function TecnicoDetalle() {
     return (
       <div className="space-y-5">
         <EnlaceVolver />
-        <section className="flex flex-col items-start justify-between gap-3 border border-danger/30 bg-danger/5 p-5 sm:flex-row sm:items-center">
+        <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center bg-danger/10 text-danger">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -228,7 +228,7 @@ export default function TecnicoDetalle() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -275,16 +275,16 @@ export default function TecnicoDetalle() {
         <button
           type="button"
           onClick={recargar}
-          className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+          className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
         >
           <IconRefresh className="h-4 w-4" />
           Recargar
         </button>
       </div>
 
-      <section className="border border-line bg-surface p-6">
+      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <span className="grid h-16 w-16 shrink-0 place-items-center bg-primary/10 text-xl font-semibold text-primary">
+          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-primary-soft text-xl font-semibold text-link">
             {obtenerIniciales(tecnico.usuario.nombre)}
           </span>
           <div className="min-w-0">
@@ -338,10 +338,10 @@ export default function TecnicoDetalle() {
         </dl>
       </section>
 
-      <section className="border border-line bg-surface p-6">
+      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
         <h3 className="font-display text-base font-semibold text-ink">Acciones</h3>
         {errorAccion && (
-          <p className="mt-3 border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
+          <p className="mt-3 rounded-md border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-text">
             {errorAccion}
           </p>
         )}
@@ -364,7 +364,7 @@ export default function TecnicoDetalle() {
                       aprobarTecnico(tecnico.id, texto || undefined),
                   })
                 }
-                className="inline-flex items-center gap-2 bg-success px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/90 active:translate-y-px"
+                className="inline-flex items-center gap-2 rounded-md bg-success px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/90 active:translate-y-px"
               >
                 <IconCheckCircle className="h-4 w-4" />
                 Aprobar
@@ -385,7 +385,7 @@ export default function TecnicoDetalle() {
                       observarTecnico(tecnico.id, texto || undefined),
                   })
                 }
-                className="inline-flex items-center gap-2 bg-warning px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-warning/90 active:translate-y-px"
+                className="inline-flex items-center gap-2 rounded-md bg-warning px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-warning/90 active:translate-y-px"
               >
                 <IconAlertTriangle className="h-4 w-4" />
                 Observar
@@ -406,7 +406,7 @@ export default function TecnicoDetalle() {
                       rechazarTecnico(tecnico.id, texto || undefined),
                   })
                 }
-                className="inline-flex items-center gap-2 bg-danger px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/90 active:translate-y-px"
+                className="inline-flex items-center gap-2 rounded-md bg-danger px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/90 active:translate-y-px"
               >
                 <IconBan className="h-4 w-4" />
                 Rechazar
@@ -429,7 +429,7 @@ export default function TecnicoDetalle() {
                   ejecutar: (texto) => suspenderTecnico(tecnico.id, texto),
                 })
               }
-              className="inline-flex items-center gap-2 bg-danger px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/90 active:translate-y-px"
+              className="inline-flex items-center gap-2 rounded-md bg-danger px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/90 active:translate-y-px"
             >
               <IconBan className="h-4 w-4" />
               Suspender
@@ -450,7 +450,7 @@ export default function TecnicoDetalle() {
                   ejecutar: (texto) => reactivarTecnico(tecnico.id, texto),
                 })
               }
-              className="inline-flex items-center gap-2 bg-success px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/90 active:translate-y-px"
+              className="inline-flex items-center gap-2 rounded-md bg-success px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/90 active:translate-y-px"
             >
               <IconPlay className="h-4 w-4" />
               Reactivar
@@ -464,7 +464,7 @@ export default function TecnicoDetalle() {
         </div>
       </section>
 
-      <section className="border border-line bg-surface p-6">
+      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-base font-semibold text-ink">
             Documentos ({tecnico.documentos.length})
@@ -477,7 +477,7 @@ export default function TecnicoDetalle() {
         </div>
 
         {tecnico.documentos.length === 0 ? (
-          <p className="mt-5 bg-surface-2 px-4 py-3 text-center text-sm text-ink-2">
+          <p className="mt-5 rounded-md bg-surface-2 px-4 py-3 text-center text-sm text-ink-2">
             El técnico aún no ha enviado documentos.
           </p>
         ) : (
@@ -490,7 +490,7 @@ export default function TecnicoDetalle() {
               return (
                 <article
                   key={documento.id}
-                  className="flex flex-col overflow-hidden border border-line bg-surface"
+                  className="flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-sm"
                 >
                   <button
                     type="button"
@@ -522,7 +522,7 @@ export default function TecnicoDetalle() {
                       · {formatearBytes(documento.bytes)}
                     </p>
                     {documento.comentarioAdmin && (
-                      <p className="bg-surface-2 px-2.5 py-1.5 text-xs text-ink-2">
+                      <p className="rounded-md bg-surface-2 px-2.5 py-1.5 text-xs text-ink-2">
                         {documento.comentarioAdmin}
                       </p>
                     )}
@@ -530,7 +530,7 @@ export default function TecnicoDetalle() {
                       <button
                         type="button"
                         onClick={() => setVisor(documento)}
-                        className="inline-flex items-center gap-1.5 border border-line bg-surface px-2.5 py-1.5 text-xs font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
                       >
                         <IconEye className="h-3.5 w-3.5" />
                         Ver
@@ -541,7 +541,7 @@ export default function TecnicoDetalle() {
                             type="button"
                             disabled={docEnCurso === documento.id}
                             onClick={() => aprobarDocumento(documento)}
-                            className="inline-flex items-center gap-1.5 bg-success/10 px-2.5 py-1.5 text-xs font-medium text-success transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/20 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-success-soft px-2.5 py-1.5 text-xs font-medium text-success-text transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/20 disabled:opacity-50"
                           >
                             <IconCheckCircle className="h-3.5 w-3.5" />
                             Aprobar
@@ -563,7 +563,7 @@ export default function TecnicoDetalle() {
                                   }),
                               })
                             }
-                            className="inline-flex items-center gap-1.5 bg-warning/10 px-2.5 py-1.5 text-xs font-medium text-warning transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-warning/20"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-warning-soft px-2.5 py-1.5 text-xs font-medium text-warning-text transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-warning/20"
                           >
                             <IconAlertTriangle className="h-3.5 w-3.5" />
                             Observar
@@ -579,17 +579,17 @@ export default function TecnicoDetalle() {
         )}
       </section>
 
-      <section className="border border-line bg-surface p-6">
+      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
         <h3 className="font-display text-base font-semibold text-ink">Historial</h3>
         {tecnico.historial.length === 0 ? (
-          <p className="mt-5 bg-surface-2 px-4 py-3 text-center text-sm text-ink-2">
+          <p className="mt-5 rounded-md bg-surface-2 px-4 py-3 text-center text-sm text-ink-2">
             Sin cambios de estado registrados.
           </p>
         ) : (
           <ol className="mt-5 space-y-4">
             {tecnico.historial.map((entrada) => (
               <li key={entrada.id} className="flex gap-3">
-                <span className="mt-1.5 grid h-8 w-8 shrink-0 place-items-center bg-surface-2 text-ink-3">
+                <span className="mt-1.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-surface-2 text-ink-3">
                   <IconUsers className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1 border-b border-line pb-4">
@@ -645,7 +645,7 @@ export default function TecnicoDetalle() {
                 className="mx-auto max-h-[70vh]"
               />
             ) : (
-              <div className="grid place-items-center gap-3 bg-surface-2 py-16 text-ink-3">
+              <div className="grid place-items-center gap-3 rounded-md bg-surface-2 py-16 text-ink-3">
                 <IconFileText className="h-12 w-12" />
                 <p className="text-sm">Vista previa no disponible</p>
               </div>
@@ -679,3 +679,4 @@ function EnlaceVolver() {
     </Link>
   )
 }
+

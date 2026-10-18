@@ -205,3 +205,12 @@ export function IconPlay({ className }: IconProps) {
     </svg>
   )
 }
+
+export function IconSearch({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  )
+}

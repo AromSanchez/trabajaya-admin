@@ -18,6 +18,7 @@ dist-ssr
 
 # Artefactos de pruebas del navegador
 .playwright-mcp/
+/*.png
 
 # Editor directories and files
 .vscode/*

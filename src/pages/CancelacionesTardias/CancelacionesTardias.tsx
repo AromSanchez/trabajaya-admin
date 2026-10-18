@@ -9,8 +9,8 @@ import { obtenerIniciales } from '../../components/navigation'
 import { useCancelacionesTardias } from '../../hooks/useCancelacionesTardias'
 
 const ROLES: Record<string, { label: string; clases: string }> = {
-  cliente: { label: 'Cliente', clases: 'bg-primary/10 text-primary' },
-  tecnico: { label: 'Técnico', clases: 'bg-success/10 text-success' },
+  cliente: { label: 'Cliente', clases: 'bg-primary-soft text-link' },
+  tecnico: { label: 'Técnico', clases: 'bg-success-soft text-success-text' },
 }
 
 function etiquetaCancelaciones(total: number): string {
@@ -34,7 +34,7 @@ function Resumen({
 }) {
   return (
     <div className="flex items-center gap-3 bg-surface p-4">
-      <span className={`grid h-10 w-10 shrink-0 place-items-center ${tono}`}>
+      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-md ${tono}`}>
         {icono}
       </span>
       <div className="min-w-0">
@@ -63,10 +63,10 @@ export default function CancelacionesTardias() {
 
   return (
     <div className="space-y-5">
-      <section className="border border-line bg-surface p-5">
+      <section className="rounded-lg border border-line bg-surface p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center bg-danger/10 text-danger">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-danger-soft text-danger-text">
               <IconClock className="h-6 w-6" />
             </span>
             <div>
@@ -83,7 +83,7 @@ export default function CancelacionesTardias() {
             type="button"
             onClick={recargar}
             aria-label="Recargar"
-            className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
           >
             <IconRefresh className="h-4 w-4" />
             <span className="hidden sm:inline">Recargar</span>
@@ -95,27 +95,27 @@ export default function CancelacionesTardias() {
             icono={<IconUsers className="h-5 w-5" />}
             valor={etiquetaUsuarios(usuarios.length)}
             etiqueta="Usuarios afectados"
-            tono="bg-primary/10 text-primary"
+            tono="rounded-md bg-primary-soft text-link"
           />
           <Resumen
             icono={<IconClock className="h-5 w-5" />}
             valor={etiquetaCancelaciones(totalCancelaciones)}
             etiqueta="Cancelaciones (30 días)"
-            tono="bg-danger/10 text-danger"
+            tono="rounded-md bg-danger-soft text-danger-text"
           />
           <Resumen
             icono={<IconAlertTriangle className="h-5 w-5" />}
             valor={promedio}
             etiqueta="Promedio por usuario"
-            tono="bg-warning/10 text-warning"
+            tono="rounded-md bg-warning-soft text-warning-text"
           />
         </div>
       </section>
 
       {error && (
-        <section className="flex flex-col items-start justify-between gap-3 border border-danger/30 bg-danger/5 p-5 sm:flex-row sm:items-center">
+        <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center bg-danger/10 text-danger">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger-soft text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -128,7 +128,7 @@ export default function CancelacionesTardias() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -136,7 +136,7 @@ export default function CancelacionesTardias() {
         </section>
       )}
 
-      <section className="overflow-hidden border border-line bg-surface">
+      <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
         <div className="border-b border-line px-5 py-4">
           <h3 className="font-display text-sm font-semibold text-ink">
             Usuarios con más cancelaciones
@@ -162,7 +162,7 @@ export default function CancelacionesTardias() {
           </div>
         ) : usuarios.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-14 text-center">
-            <span className="grid h-14 w-14 place-items-center bg-success/10 text-success">
+            <span className="grid h-14 w-14 place-items-center rounded-lg bg-success-soft text-success-text">
               <IconClock className="h-7 w-7" />
             </span>
             <h3 className="mt-4 font-display text-base font-semibold text-ink">
@@ -189,7 +189,7 @@ export default function CancelacionesTardias() {
                 <li key={usuario.usuarioId} className="p-5">
                   <div className="flex items-start gap-3 sm:gap-4">
                     <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center text-sm font-semibold tabular-nums ${
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-md text-sm font-semibold tabular-nums ${
                         primerPuesto
                           ? 'bg-danger/10 text-danger'
                           : 'bg-surface-2 text-ink-3'
@@ -197,7 +197,7 @@ export default function CancelacionesTardias() {
                     >
                       {indice + 1}
                     </span>
-                    <span className="grid h-10 w-10 shrink-0 place-items-center bg-primary/10 text-sm font-semibold text-primary">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft text-sm font-semibold text-link">
                       {obtenerIniciales(usuario.nombre)}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -220,7 +220,7 @@ export default function CancelacionesTardias() {
                         {usuario.email}
                       </p>
                       <div
-                        className="mt-2.5 h-2 w-full overflow-hidden bg-line"
+                        className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-surface-2"
                         role="progressbar"
                         aria-valuemin={0}
                         aria-valuemax={100}
@@ -228,7 +228,7 @@ export default function CancelacionesTardias() {
                         aria-label={`Cancelaciones de ${usuario.nombre}`}
                       >
                         <div
-                          className={`h-full ${primerPuesto ? 'bg-danger' : 'bg-ink-3'}`}
+                          className={`h-full rounded-full ${primerPuesto ? 'bg-danger' : 'bg-ink-3'}`}
                           style={{ width: `${porcentaje}%` }}
                         />
                       </div>
@@ -250,3 +250,4 @@ export default function CancelacionesTardias() {
     </div>
   )
 }
+
