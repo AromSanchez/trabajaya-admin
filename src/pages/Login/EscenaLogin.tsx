@@ -16,6 +16,7 @@ export type EstadoLogin = 'idle' | 'enviando' | 'exito'
 interface EscenaLoginProps {
   foco: FocoLogin
   estado: EstadoLogin
+  tapandoOjos: boolean
 }
 
 const CHIPS = [
@@ -24,7 +25,7 @@ const CHIPS = [
   { icono: BarChart3, texto: 'Métricas', x: 'right-10 bottom-[24%]', retardo: 1.6 },
 ] as const
 
-export default function EscenaLogin({ foco, estado }: EscenaLoginProps) {
+export default function EscenaLogin({ foco, estado, tapandoOjos }: EscenaLoginProps) {
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const [parpadeo, setParpadeo] = useState(false)
@@ -58,12 +59,12 @@ export default function EscenaLogin({ foco, estado }: EscenaLoginProps) {
     return () => window.clearTimeout(t)
   }, [estado])
 
-  const sx = useSpring(mx, { stiffness: 120, damping: 16, mass: 0.5 })
-  const sy = useSpring(my, { stiffness: 120, damping: 16, mass: 0.5 })
-  const pupilaX = useTransform(sx, [-1, 1], [-6.5, 6.5])
-  const pupilaY = useTransform(sy, [-1, 1], [-4.5, 4.5])
-  const caraX = useTransform(sx, [-1, 1], [-7, 7])
-  const caraY = useTransform(sy, [-1, 1], [-4.5, 4.5])
+  const sx = useSpring(mx, { stiffness: 130, damping: 14, mass: 0.45 })
+  const sy = useSpring(my, { stiffness: 130, damping: 14, mass: 0.45 })
+  const pupilaX = useTransform(sx, [-1, 1], [-10, 10])
+  const pupilaY = useTransform(sy, [-1, 1], [-7, 7])
+  const caraX = useTransform(sx, [-1, 1], [-10, 10])
+  const caraY = useTransform(sy, [-1, 1], [-6, 6])
 
   const feliz = estado === 'exito'
   const pensando = estado === 'enviando'
@@ -151,9 +152,9 @@ export default function EscenaLogin({ foco, estado }: EscenaLoginProps) {
                 key={i}
                 className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-white shadow-inner"
                 animate={{
-                  scaleY: parpadeo && !feliz ? 0.08 : pensando ? 0.6 : 1,
+                  scaleY: feliz ? 1 : tapandoOjos || parpadeo ? 0.08 : pensando ? 0.6 : 1,
                 }}
-                transition={{ duration: 0.12 }}
+                transition={{ duration: 0.14 }}
               >
                 {feliz ? (
                   <svg viewBox="0 0 40 40" className="h-9 w-9 text-hero">
