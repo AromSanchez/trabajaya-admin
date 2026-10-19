@@ -9,9 +9,7 @@ import {
 } from './theme-context'
 
 type DocumentoConTransiciones = Document & {
-  startViewTransition?: (callback: () => void) => {
-    ready: Promise<void>
-  }
+  startViewTransition?: (callback: () => void) => unknown
 }
 
 function prefiereOscuro(): boolean {
@@ -29,30 +27,15 @@ function prefiereMovimientoReducido(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function animarCirculo(
-  transicion: { ready: Promise<void> },
-  { x, y }: OrigenAnimacion,
-) {
+function preparaOrigen({ x, y }: OrigenAnimacion) {
+  const raiz = document.documentElement
   const radio = Math.hypot(
     Math.max(x, window.innerWidth - x),
     Math.max(y, window.innerHeight - y),
   )
-
-  transicion.ready.then(() => {
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${radio}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration: 500,
-        easing: 'ease-in-out',
-        pseudoElement: '::view-transition-new(root)',
-      },
-    )
-  })
+  raiz.style.setProperty('--tema-origen-x', `${x}px`)
+  raiz.style.setProperty('--tema-origen-y', `${y}px`)
+  raiz.style.setProperty('--tema-radio', `${radio}px`)
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -94,11 +77,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      const transicion = doc.startViewTransition(() => {
+      preparaOrigen(origen as OrigenAnimacion)
+      doc.startViewTransition(() => {
         aplicaClase(nuevoResuelto)
         setTemaState(nuevo)
       })
-      animarCirculo(transicion, origen as OrigenAnimacion)
     },
     [oscuroSistema, temaResuelto],
   )

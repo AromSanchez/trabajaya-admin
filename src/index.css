@@ -272,19 +272,40 @@
 }
 
 /* Transición de tema: revelado circular (View Transitions API).
-   El nuevo tema aparece como un círculo que crece desde el punto de origen. */
+   La animación vive en CSS (no en JS) para que arranque en el primer frame;
+   si se animara desde JS tras `transition.ready` se ve un destello del tema
+   nuevo a tamaño completo antes del círculo. El origen y el radio llegan como
+   variables CSS puestas por ThemeToggle/ThemeContext. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none;
   mix-blend-mode: normal;
 }
 
+::view-transition-group(root) {
+  animation-duration: 500ms;
+  animation-timing-function: ease-in-out;
+}
+
 ::view-transition-old(root) {
-  z-index: 1;
+  animation: none;
+  z-index: -1;
 }
 
 ::view-transition-new(root) {
-  z-index: 2;
+  z-index: 1;
+  animation: tema-reveal 500ms ease-in-out both;
+}
+
+@keyframes tema-reveal {
+  from {
+    clip-path: circle(0px at var(--tema-origen-x, 50%) var(--tema-origen-y, 50%));
+  }
+  to {
+    clip-path: circle(
+      var(--tema-radio, 100vmax) at var(--tema-origen-x, 50%)
+        var(--tema-origen-y, 50%)
+    );
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
