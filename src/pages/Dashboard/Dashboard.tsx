@@ -45,9 +45,19 @@ function formatearSemana(iso: string): string {
   return formatoSemana.format(new Date(iso)).replace('.', '')
 }
 
-function capitalizar(texto: string): string {
+// El backend puede devolver `null` en campos como oficio o distrito, aunque el
+// tipo los declare string. Se protege para no romper el render.
+function capitalizar(texto: string | null | undefined): string {
+  if (!texto) return ''
   const limpio = texto.replace(/_/g, ' ')
   return limpio.charAt(0).toUpperCase() + limpio.slice(1)
+}
+
+function descripcionTecnico(
+  oficio: string | null | undefined,
+  distrito: string | null | undefined,
+): string {
+  return [capitalizar(oficio), capitalizar(distrito)].filter(Boolean).join(' · ')
 }
 
 function acumular(valores: number[]): number[] {
@@ -428,7 +438,7 @@ function BadgeDocumentos({
     )
   }
 
-  const cantidad = item.faltantes.length
+  const cantidad = item.faltantes?.length ?? 0
   const texto =
     cantidad > 0
       ? `Faltan ${cantidad} documento${cantidad === 1 ? '' : 's'}`
@@ -476,7 +486,8 @@ function ColaRevision({ metricas }: { metricas: MetricasDashboard }) {
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-ink">{item.nombre}</p>
                 <p className="truncate text-xs capitalize text-ink-3">
-                  {capitalizar(item.oficio)} · {capitalizar(item.distrito)}
+                  {descripcionTecnico(item.oficio, item.distrito) ||
+                    'Sin oficio ni distrito'}
                 </p>
               </div>
               <BadgeDocumentos item={item} />
@@ -839,7 +850,7 @@ export default function Dashboard() {
           ) : (
             <BarList
               items={metricas.tecnicosPorOficio.oficios.map((oficio) => ({
-                etiqueta: capitalizar(oficio.oficio),
+                etiqueta: capitalizar(oficio.oficio) || 'Sin especialidad',
                 total: oficio.total,
                 porcentaje: oficio.porcentaje,
               }))}

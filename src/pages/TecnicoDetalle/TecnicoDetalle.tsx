@@ -64,7 +64,9 @@ interface ConfigAccion {
   ejecutar: (texto: string) => Promise<unknown>
 }
 
-function capitalizar(texto: string): string {
+// El backend puede devolver `null` en campos que el tipo declara string.
+function capitalizar(texto: string | null | undefined): string {
+  if (!texto) return ''
   const limpio = texto.replace(/_/g, ' ')
   return limpio.charAt(0).toUpperCase() + limpio.slice(1)
 }
