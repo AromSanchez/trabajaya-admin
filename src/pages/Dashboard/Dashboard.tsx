@@ -299,7 +299,7 @@ function RegistrosVerificaciones({ metricas }: { metricas: MetricasDashboard }) 
               Registros nuevos
             </span>
             <span className="inline-flex items-center gap-2 text-ink-2">
-              <span className="h-2.5 w-4 rounded-full bg-chart-2" />
+              <span className="h-2.5 w-4 rounded-full bg-chart-4" />
               Verificados
             </span>
           </div>
@@ -315,9 +315,10 @@ function RegistrosVerificaciones({ metricas }: { metricas: MetricasDashboard }) 
               },
               {
                 nombre: 'Verificados',
-                colorVar: 'var(--color-chart-2)',
+                colorVar: 'var(--color-chart-4)',
                 datos: serie.map((punto) => punto.verificados),
                 punteada: true,
+                mostrarPuntos: true,
               },
             ]}
           />
