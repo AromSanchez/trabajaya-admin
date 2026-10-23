@@ -461,3 +461,134 @@ export async function reactivarTecnico(
   )
   return data.data.tecnico
 }
+
+export type TipoMonetizacion = 'creditos' | 'mensualidad'
+export type TipoTransaccion =
+  | 'compra_creditos'
+  | 'activacion_plan'
+  | 'descuento_credito'
+  | 'comision_servicio'
+  | 'cambio_modelo'
+
+export interface MonetizacionTecnico {
+  id: number
+  tipo: TipoMonetizacion | null
+  creditosRestantes: number
+  planVenceAt: string | null
+  paqueteId: string | null
+  planId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TecnicoMonetizacion {
+  id: number
+  nombre: string
+  email: string
+  oficio: string
+  monetizacion: MonetizacionTecnico
+}
+
+interface TecnicosMonetizacionResponse {
+  data: {
+    tecnicos: TecnicoMonetizacion[]
+    paginacion: Paginacion
+  }
+}
+
+export interface FiltrosMonetizacionTecnicos {
+  tipo?: TipoMonetizacion
+  orden?: 'recientes' | 'creditos' | 'vencimiento'
+  page?: number
+  limit?: number
+}
+
+export async function listarTecnicosMonetizacion(
+  filtros: FiltrosMonetizacionTecnicos = {},
+): Promise<{ tecnicos: TecnicoMonetizacion[]; paginacion: Paginacion }> {
+  const params: Record<string, string | number> = {}
+  if (filtros.tipo) params.tipo = filtros.tipo
+  if (filtros.orden) params.orden = filtros.orden
+  if (filtros.page) params.page = filtros.page
+  if (filtros.limit) params.limit = filtros.limit
+
+  const { data } = await api.get<TecnicosMonetizacionResponse>(
+    '/admin/monetizacion/tecnicos',
+    { params },
+  )
+  return data.data
+}
+
+export interface TransaccionMonetizacion {
+  id: number
+  tipo: TipoTransaccion
+  monto: number | null
+  creditos: number | null
+  descripcion: string | null
+  referenciaId: string | null
+  createdAt: string
+  tecnico: {
+    id: number
+    nombre: string
+    email: string
+  }
+}
+
+interface TransaccionesMonetizacionResponse {
+  data: {
+    transacciones: TransaccionMonetizacion[]
+    paginacion: Paginacion
+  }
+}
+
+export interface FiltrosTransaccionesMonetizacion {
+  tecnicoId?: number
+  tipoTransaccion?: TipoTransaccion
+  desde?: string
+  hasta?: string
+  page?: number
+  limit?: number
+}
+
+export async function listarTransaccionesMonetizacion(
+  filtros: FiltrosTransaccionesMonetizacion = {},
+): Promise<{ transacciones: TransaccionMonetizacion[]; paginacion: Paginacion }> {
+  const params: Record<string, string | number> = {}
+  if (filtros.tecnicoId) params.tecnicoId = filtros.tecnicoId
+  if (filtros.tipoTransaccion) params.tipoTransaccion = filtros.tipoTransaccion
+  if (filtros.desde) params.desde = filtros.desde
+  if (filtros.hasta) params.hasta = filtros.hasta
+  if (filtros.page) params.page = filtros.page
+  if (filtros.limit) params.limit = filtros.limit
+
+  const { data } = await api.get<TransaccionesMonetizacionResponse>(
+    '/admin/monetizacion/transacciones',
+    { params },
+  )
+  return data.data
+}
+
+export interface ResumenMonetizacion {
+  tecnicos: {
+    total: number
+    conModelo: number
+    creditos: number
+    mensualidad: number
+  }
+  planesActivos: number
+  creditosEnCirculacion: number
+  ingresos: { mes: number; total: number }
+  transacciones: { total: number; mes: number }
+  generadoAt: string
+}
+
+interface ResumenMonetizacionResponse {
+  data: ResumenMonetizacion
+}
+
+export async function obtenerResumenMonetizacion(): Promise<ResumenMonetizacion> {
+  const { data } = await api.get<ResumenMonetizacionResponse>(
+    '/admin/monetizacion/resumen',
+  )
+  return data.data
+}

@@ -8,6 +8,7 @@ import TecnicoDetalle from './pages/TecnicoDetalle/TecnicoDetalle'
 import Reportes from './pages/Reportes/Reportes'
 import ReporteDetalle from './pages/ReporteDetalle/ReporteDetalle'
 import CancelacionesTardias from './pages/CancelacionesTardias/CancelacionesTardias'
+import Monetizacion from './pages/Monetizacion/Monetizacion'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             path="/cancelaciones-tardias"
             element={<CancelacionesTardias />}
           />
+          <Route path="/monetizacion" element={<Monetizacion />} />
         </Route>
       </Route>
 

@@ -214,3 +214,16 @@ export function IconSearch({ className }: IconProps) {
     </svg>
   )
 }
+
+export function IconCoins({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M12 8a6 6 0 0 1 6 6H8a6 6 0 0 1 6-6z" />
+      <path d="M12 2v4" />
+      <path d="M12 18v4" />
+      <path d="M8 8H4" />
+      <path d="M18 8h4" />
+    </svg>
+  )
+}

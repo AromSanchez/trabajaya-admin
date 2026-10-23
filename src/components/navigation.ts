@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import {
   IconClock,
+  IconCoins,
   IconDashboard,
   IconFlag,
   IconUsers,
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Cancelaciones tardías',
     icon: IconClock,
   },
+  { to: '/monetizacion', label: 'Monetización', icon: IconCoins },
 ]
 
 export function obtenerTituloRuta(pathname: string): string {
