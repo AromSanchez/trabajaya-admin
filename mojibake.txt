@@ -1,0 +1,4 @@
+' text-ink">Comparaci�n vs mes anterior</h'
+'="Cancelaciones tard�as" actual={aNumero('
+'s etiqueta="Conversi�n" actual={aNumero(s'
+'taMes etiqueta="Rese�as" actual={aNumero('

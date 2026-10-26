@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ComponentType } from 'react'
 import {
   Cell,
@@ -461,14 +462,20 @@ function SubseccionTecnicos({
   mensual: boolean
 }) {
   const serieMensual = metricas.seriesMensuales?.serie
-  const usarMensual = mensual && !!serieMensual
+  const serieSemanal = metricas.semanalDelMes?.serie
+  const usarSemanal = !!serieSemanal
+  const usarMensual = !usarSemanal && mensual && !!serieMensual
 
-  const serieRegistros = (usarMensual
-    ? serieMensual!
-    : metricas.registrosVerificaciones.serie) as unknown as Array<Record<string, unknown>>
-  const serieCancela = (usarMensual
-    ? serieMensual!
-    : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
+  const serieRegistros = (usarSemanal
+    ? serieSemanal!
+    : usarMensual
+      ? serieMensual!
+      : metricas.registrosVerificaciones.serie) as unknown as Array<Record<string, unknown>>
+  const serieCancela = (usarSemanal
+    ? serieSemanal!
+    : usarMensual
+      ? serieMensual!
+      : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
 
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
@@ -626,16 +633,21 @@ function SubseccionServicios({
   marketplace,
   mensual,
   seriesMensuales,
+  semanalDelMes,
 }: {
   marketplace: NonNullable<MetricasDashboard['marketplace']>
   mensual: boolean
   seriesMensuales?: MetricasDashboard['seriesMensuales']
+  semanalDelMes?: MetricasDashboard['semanalDelMes']
 }) {
   const { servicios, clientes, calidad } = marketplace
-  const usarMensual = mensual && !!seriesMensuales?.serie
-  const serieCompletadas = (usarMensual
-    ? seriesMensuales!.serie
-    : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
+  const usarSemanal = !!semanalDelMes?.serie
+  const usarMensual = !usarSemanal && mensual && !!seriesMensuales?.serie
+  const serieCompletadas = (usarSemanal
+    ? semanalDelMes!.serie
+    : usarMensual
+      ? seriesMensuales!.serie
+      : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
 
   const dona = servicios.porEstado.map((estado) => ({
     nombre: ESTADOS_SERVICIO_INFO[estado.estado]?.label ?? capitalizar(estado.estado),
@@ -969,6 +981,8 @@ export function SeccionMetricas({
 }) {
   const marketplace = metricas.marketplace
   const mensual = true
+  const [mostrarAnual, setMostrarAnual] = useState(false)
+  console.log('SeccionMetricas seriesMensuales', metricas.seriesMensuales?.meses)
 
   return (
     <section aria-labelledby="titulo-metricas" className="pt-3">
@@ -1027,6 +1041,9 @@ export function SeccionMetricas({
               )
             })}
           </select>
+          {metricas.seriesMensuales && (
+            <button type="button" onClick={() => setMostrarAnual(true)} className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink shadow-sm hover:bg-surface-2">Ver 12 meses</button>
+          )}
         </div>
       </header>
 
@@ -1050,6 +1067,7 @@ export function SeccionMetricas({
             marketplace={marketplace}
             mensual={mensual}
             seriesMensuales={metricas.seriesMensuales}
+            semanalDelMes={metricas.semanalDelMes}
           />
         ) : (
           <EstadoVacio mensaje="Las métricas de servicios no están disponibles en esta versión del backend. Actualiza el backend para habilitar el bloque de marketplace." />
@@ -1058,6 +1076,32 @@ export function SeccionMetricas({
 
       {/* Métricas de monetización: se implementarán en la página de Monetización. */}
       {/* <CabeceraSubseccion ... /> */}
+      {mostrarAnual && metricas.seriesMensuales && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setMostrarAnual(false)}>
+          <div className="max-h-[85vh] w-full max-w-4xl overflow-auto rounded-xl border border-line bg-surface p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="font-display text-xl font-semibold text-ink">Evolucion de los ultimos 12 meses</h3>
+              <button type="button" onClick={() => setMostrarAnual(false)} className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-2">Cerrar</button>
+            </div>
+            <div className="mt-4">
+              <GraficoLineas
+                datos={metricas.seriesMensuales.serie.map((punto) => ({
+                  semana: String(punto.mes),
+                  registros: aNumero(punto.registros),
+                  verificados: aNumero(punto.verificados),
+                  completados: aNumero(punto.completados),
+                }))}
+                etiquetasTooltip={{ registros: "{v} registros", verificados: "{v} verificados", completados: "{v} completados" }}
+                series={[
+                  { clave: "registros", nombre: "Registrados", colorVar: "var(--color-chart-1)" },
+                  { clave: "verificados", nombre: "Verificados", colorVar: "var(--color-chart-4)" },
+                  { clave: "completados", nombre: "Completados", colorVar: "var(--color-chart-2)" },
+                ]}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
