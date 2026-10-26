@@ -266,6 +266,8 @@ export default function Monetizacion() {
   const [tab, setTab] = useState<'tecnicos' | 'transacciones'>('tecnicos')
 
   const [resumen, setResumen] = useState<ResumenMonetizacion | null>(null)
+  const [metricas, setMetricas] = useState<MetricasMonetizacion | null>(null)
+  const [cargandoMetricas, setCargandoMetricas] = useState(true)
   const [cargandoResumen, setCargandoResumen] = useState(true)
 
   const [tecnicos, setTecnicos] = useState<TecnicoMonetizacion[]>([])
@@ -336,6 +338,27 @@ export default function Monetizacion() {
   const [hastaTxt, setHastaTxt] = useState('')
   const [paginaTrans, setPaginaTrans] = useState(1)
   const [reloadKey, setReloadKey] = useState(0)
+
+  const cargarMetricas = useCallback(async () => {
+    setCargandoMetricas(true)
+
+    try {
+      const resultado = await obtenerMetricasMonetizacion({
+        semanas: 8,
+        meses: 6,
+      })
+
+      setMetricas(resultado)
+    } catch (error) {
+      console.error('Error al cargar métricas de monetización:', error)
+    } finally {
+      setCargandoMetricas(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void cargarMetricas()
+  }, [cargarMetricas, reloadKey])
 
   const hayFiltrosTecnicos = tipoSel !== 'todos' || ordenSel !== 'recientes'
   const hayFiltrosTrans =
@@ -554,9 +577,11 @@ export default function Monetizacion() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todos">Todos los modelos</SelectItem>
-                    <SelectItem value="creditos">Créditos</SelectItem>
-                    <SelectItem value="mensualidad">Mensualidad</SelectItem>
+                    {FILTROS_MODELO.map((filtro) => (
+                      <SelectItem key={filtro.valor} value={filtro.valor}>
+                        {filtro.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -730,6 +755,211 @@ export default function Monetizacion() {
           </section>
         </>
       )}
+
+
+      {/* Métricas de monetización */}
+      <section className="space-y-4 rounded-lg border border-line bg-surface p-4 shadow-sm">
+        <div>
+          <h2 className="text-base font-semibold text-ink">
+            Métricas de monetización
+          </h2>
+          <p className="mt-1 text-sm text-ink-3">
+            Evolución de ingresos, modelos activos y adopción de monetización.
+          </p>
+        </div>
+
+        {cargandoMetricas && !metricas ? (
+          <p className="py-6 text-center text-sm text-ink-3">
+            Cargando métricas...
+          </p>
+        ) : !metricas ? (
+          <p className="py-6 text-center text-sm text-ink-3">
+            No se pudieron cargar las métricas. Pulsa Recargar para intentarlo de nuevo.
+          </p>
+        ) : (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border border-line p-4">
+                <p className="text-xs font-medium text-ink-3">Técnicos con créditos</p>
+                <p className="mt-2 text-2xl font-semibold text-ink">
+                  {metricas.resumen.totalConCreditos}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-line p-4">
+                <p className="text-xs font-medium text-ink-3">Con mensualidad</p>
+                <p className="mt-2 text-2xl font-semibold text-ink">
+                  {metricas.resumen.totalConMensualidad}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-line p-4">
+                <p className="text-xs font-medium text-ink-3">Sin modelo</p>
+                <p className="mt-2 text-2xl font-semibold text-ink">
+                  {metricas.resumen.totalSinModelo}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-line p-4">
+                <p className="text-xs font-medium text-ink-3">Porcentaje monetizado</p>
+                <p className="mt-2 text-2xl font-semibold text-ink">
+                  {metricas.resumen.porcentajeMonetizados.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg bg-surface-2 p-4">
+                <p className="text-xs text-ink-3">Ingresos por créditos</p>
+                <p className="mt-2 font-semibold text-ink">
+                  {formatMoney(metricas.resumen.ingresosTotalesCreditos)}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-surface-2 p-4">
+                <p className="text-xs text-ink-3">Ingresos por mensualidades</p>
+                <p className="mt-2 font-semibold text-ink">
+                  {formatMoney(metricas.resumen.ingresosTotalesMensualidad)}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-surface-2 p-4">
+                <p className="text-xs text-ink-3">Ingresos por comisiones</p>
+                <p className="mt-2 font-semibold text-ink">
+                  {formatMoney(metricas.resumen.ingresosTotalesComisiones)}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-line p-4">
+                <p className="text-xs text-ink-3">Ingresos históricos totales</p>
+                <p className="mt-2 text-lg font-semibold text-ink">
+                  {formatMoney(metricas.resumen.ingresosTotales)}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="overflow-hidden rounded-lg border border-line">
+                <div className="border-b border-line px-4 py-3">
+                  <h3 className="text-sm font-semibold text-ink">
+                    Modelos activos por semana
+                  </h3>
+                </div>
+
+                {metricas.modelosActivos.serie.length === 0 ? (
+                  <p className="p-4 text-sm text-ink-3">No hay datos semanales.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-line text-xs text-ink-3">
+                          <th className="px-4 py-2 font-medium">Semana</th>
+                          <th className="px-4 py-2 text-right font-medium">Créditos</th>
+                          <th className="px-4 py-2 text-right font-medium">Mensualidad</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line">
+                        {metricas.modelosActivos.serie.map((semana) => (
+                          <tr key={semana.semanaInicio}>
+                            <td className="px-4 py-3 text-ink-2">
+                              {formatDate(semana.semanaInicio)}
+                            </td>
+                            <td className="px-4 py-3 text-right tabular-nums">
+                              {semana.creditos}
+                            </td>
+                            <td className="px-4 py-3 text-right tabular-nums">
+                              {semana.mensualidad}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="overflow-hidden rounded-lg border border-line">
+                <div className="border-b border-line px-4 py-3">
+                  <h3 className="text-sm font-semibold text-ink">
+                    Ingresos por semana
+                  </h3>
+                </div>
+
+                {metricas.ingresos.serie.length === 0 ? (
+                  <p className="p-4 text-sm text-ink-3">No hay datos semanales.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-line text-xs text-ink-3">
+                          <th className="px-4 py-2 font-medium">Semana</th>
+                          <th className="px-4 py-2 text-right font-medium">Ingresos</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line">
+                        {metricas.ingresos.serie.map((semana) => (
+                          <tr key={semana.semanaInicio}>
+                            <td className="px-4 py-3 text-ink-2">
+                              {formatDate(semana.semanaInicio)}
+                            </td>
+                            <td className="px-4 py-3 text-right font-medium tabular-nums">
+                              {formatMoney(semana.ingresosTotalSemana)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-lg border border-line">
+              <div className="border-b border-line px-4 py-3">
+                <h3 className="text-sm font-semibold text-ink">
+                  Adopción de monetización por semana
+                </h3>
+              </div>
+
+              {metricas.adopcion.serie.length === 0 ? (
+                <p className="p-4 text-sm text-ink-3">No hay datos de adopción.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-line text-xs text-ink-3">
+                        <th className="px-4 py-2 font-medium">Semana</th>
+                        <th className="px-4 py-2 text-right font-medium">
+                          Técnicos verificados
+                        </th>
+                        <th className="px-4 py-2 text-right font-medium">
+                          Con modelo activo
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {metricas.adopcion.serie.map((semana) => (
+                        <tr key={semana.semanaInicio}>
+                          <td className="px-4 py-3 text-ink-2">
+                            {formatDate(semana.semanaInicio)}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums">
+                            {semana.verificadosSemana}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums">
+                            {semana.conModeloActivoSemana}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </section>
+
 
       {tab === 'transacciones' && (
         <>
