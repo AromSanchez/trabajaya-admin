@@ -408,15 +408,33 @@ const ESTADOS_SERVICIO_INFO: Record<string, { label: string; colorVar: string }>
 /* Subsección 1 · Técnicos y verificación                              */
 /* ------------------------------------------------------------------ */
 
-function SubseccionTecnicos({ metricas }: { metricas: MetricasDashboard }) {
-  const serieRegistros = metricas.registrosVerificaciones.serie
-  const serieCancela = metricas.cancelacionesTardiasSemanales.serie
+function SubseccionTecnicos({
+  metricas,
+  mensual,
+}: {
+  metricas: MetricasDashboard
+  mensual: boolean
+}) {
+  const serieMensual = metricas.seriesMensuales?.serie
+  const usarMensual = mensual && !!serieMensual
+
+  const serieRegistros = (usarMensual
+    ? serieMensual!
+    : metricas.registrosVerificaciones.serie) as any[]
+  const serieCancela = (usarMensual
+    ? serieMensual!
+    : metricas.cancelacionesTardiasSemanales.serie) as any[]
+
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
-  const hayRegistros = serieRegistros.some(
-    (punto) => punto.registrosNuevos > 0 || punto.verificados > 0,
-  )
-  const hayCancela = serieCancela.some((punto) => punto.total > 0)
+  const hayRegistros = usarMensual
+    ? serieRegistros.some((punto) => punto.registros > 0 || punto.verificados > 0)
+    : serieRegistros.some(
+        (punto) => punto.registrosNuevos > 0 || punto.verificados > 0,
+      )
+  const hayCancela = usarMensual
+    ? serieCancela.some((punto) => punto.cancelacionesTardias > 0)
+    : serieCancela.some((punto) => punto.total > 0)
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
@@ -425,14 +443,18 @@ function SubseccionTecnicos({ metricas }: { metricas: MetricasDashboard }) {
           Registros vs verificaciones
         </h4>
         <p className="mt-0.5 text-sm text-ink-2">
-          Por semana · últimas {metricas.registrosVerificaciones.semanas} semanas
+          {usarMensual
+            ? `Por mes · últimos ${metricas.seriesMensuales?.meses ?? 0} meses`
+            : `Por semana · últimas ${metricas.registrosVerificaciones.semanas} semanas`}
         </p>
         <div className="mt-4">
           {hayRegistros ? (
             <GraficoLineas
               datos={serieRegistros.map((punto) => ({
-                semana: formatearSemana(punto.semanaInicio),
-                registros: punto.registrosNuevos,
+                semana: usarMensual
+                  ? String(punto.mes)
+                  : formatearSemana(punto.semanaInicio),
+                registros: usarMensual ? punto.registros : punto.registrosNuevos,
                 verificados: punto.verificados,
               }))}
               etiquetasTooltip={{
@@ -463,15 +485,18 @@ function SubseccionTecnicos({ metricas }: { metricas: MetricasDashboard }) {
           Cancelaciones tardías
         </h4>
         <p className="mt-0.5 text-sm text-ink-2">
-          Por semana · últimas {metricas.cancelacionesTardiasSemanales.semanas}{' '}
-          semanas
+          {usarMensual
+            ? `Por mes · últimos ${metricas.seriesMensuales?.meses ?? 0} meses`
+            : `Por semana · últimas ${metricas.cancelacionesTardiasSemanales.semanas} semanas`}
         </p>
         <div className="mt-4">
           {hayCancela ? (
             <GraficoLineas
               datos={serieCancela.map((punto) => ({
-                semana: formatearSemana(punto.semanaInicio),
-                tardias: punto.total,
+                semana: usarMensual
+                  ? String(punto.mes)
+                  : formatearSemana(punto.semanaInicio),
+                tardias: usarMensual ? punto.cancelacionesTardias : punto.total,
               }))}
               etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
               series={[
@@ -534,11 +559,18 @@ function SubseccionTecnicos({ metricas }: { metricas: MetricasDashboard }) {
 
 function SubseccionServicios({
   marketplace,
+  mensual,
+  seriesMensuales,
 }: {
   marketplace: NonNullable<MetricasDashboard['marketplace']>
+  mensual: boolean
+  seriesMensuales?: MetricasDashboard['seriesMensuales']
 }) {
   const { servicios, clientes, calidad } = marketplace
-  const serieCompletadas = servicios.evolucionCompletadasSemanal.serie
+  const usarMensual = mensual && !!seriesMensuales?.serie
+  const serieCompletadas = (usarMensual
+    ? seriesMensuales!.serie
+    : servicios.evolucionCompletadasSemanal.serie) as any[]
 
   const dona = servicios.porEstado.map((estado) => ({
     nombre: ESTADOS_SERVICIO_INFO[estado.estado]?.label ?? capitalizar(estado.estado),
@@ -558,14 +590,17 @@ function SubseccionServicios({
             Servicios completados
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            Por semana · últimas {servicios.evolucionCompletadasSemanal.semanas}{' '}
-            semanas
+            {usarMensual
+              ? `Por mes · últimos ${seriesMensuales?.meses ?? 0} meses`
+              : `Por semana · últimas ${servicios.evolucionCompletadasSemanal.semanas} semanas`}
           </p>
           <div className="mt-4">
             {hayCompletadas ? (
               <GraficoLineas
                 datos={serieCompletadas.map((punto) => ({
-                  semana: formatearSemana(punto.semanaInicio),
+                  semana: usarMensual
+                    ? String(punto.mes)
+                    : formatearSemana(punto.semanaInicio),
                   completadas: punto.completadas,
                 }))}
                 etiquetasTooltip={{ completadas: '{v} completados' }}
@@ -632,23 +667,37 @@ function SubseccionServicios({
 
 function SubseccionMonetizacion({
   monetizacion,
+  mensual,
 }: {
   monetizacion: MetricasMonetizacion
+  mensual: boolean
 }) {
   const { modelosActivos, ingresos, resumen } = monetizacion
+  const usarMensual = mensual && !!monetizacion.mensuales
 
-  const serieModelos = modelosActivos.serie
-  const serieIngresos = ingresos.serie
+  const serieModelos = (usarMensual
+    ? monetizacion.mensuales!.modelosMensuales.serie
+    : modelosActivos.serie) as any[]
+  const serieIngresos = (usarMensual
+    ? monetizacion.mensuales!.ingresosMensuales.serie
+    : ingresos.serie) as any[]
 
   const hayModelos = serieModelos.some(
     (punto) => punto.creditos > 0 || punto.mensualidad > 0,
   )
-  const hayIngresos = serieIngresos.some(
-    (punto) =>
-      punto.ingresosCreditosSemana > 0 ||
-      punto.ingresosMensualidadSemana > 0 ||
-      punto.ingresosComisionesSemana > 0,
-  )
+  const hayIngresos = usarMensual
+    ? serieIngresos.some(
+        (punto) =>
+          punto.ingresosCreditosMes > 0 ||
+          punto.ingresosMensualidadMes > 0 ||
+          punto.ingresosComisionesMes > 0,
+      )
+    : serieIngresos.some(
+        (punto) =>
+          punto.ingresosCreditosSemana > 0 ||
+          punto.ingresosMensualidadSemana > 0 ||
+          punto.ingresosComisionesSemana > 0,
+      )
 
   const totalMonetizados = resumen.totalConCreditos + resumen.totalConMensualidad
 
@@ -660,16 +709,26 @@ function SubseccionMonetizacion({
             Ingresos por semana
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            Recargas de créditos · plan mensual · comisiones
+            {usarMensual
+              ? `Por mes · últimos ${monetizacion.mensuales?.ingresosMensuales.meses ?? 0} meses`
+              : 'Recargas de créditos · plan mensual · comisiones'}
           </p>
           <div className="mt-4">
             {hayIngresos ? (
               <GraficoLineas
                 datos={serieIngresos.map((punto) => ({
-                  semana: formatearSemana(punto.semanaInicio),
-                  creditos: punto.ingresosCreditosSemana,
-                  mensualidad: punto.ingresosMensualidadSemana,
-                  comisiones: punto.ingresosComisionesSemana,
+                  semana: usarMensual
+                    ? String(punto.mes)
+                    : formatearSemana(punto.semanaInicio),
+                  creditos: usarMensual
+                    ? punto.ingresosCreditosMes
+                    : punto.ingresosCreditosSemana,
+                  mensualidad: usarMensual
+                    ? punto.ingresosMensualidadMes
+                    : punto.ingresosMensualidadSemana,
+                  comisiones: usarMensual
+                    ? punto.ingresosComisionesMes
+                    : punto.ingresosComisionesSemana,
                 }))}
                 etiquetasTooltip={{
                   creditos: 'S/ {v} en créditos',
@@ -705,13 +764,17 @@ function SubseccionMonetizacion({
             Técnicos por modelo
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            Créditos vs mensualidad · últimas {serieModelos.length} semanas
+            {usarMensual
+              ? `Por mes · últimos ${monetizacion.mensuales?.modelosMensuales.meses ?? 0} meses`
+              : `Créditos vs mensualidad · últimas ${serieModelos.length} semanas`}
           </p>
           <div className="mt-4">
             {hayModelos ? (
               <GraficoLineas
                 datos={serieModelos.map((punto) => ({
-                  semana: formatearSemana(punto.semanaInicio),
+                  semana: usarMensual
+                    ? String(punto.mes)
+                    : formatearSemana(punto.semanaInicio),
                   creditos: punto.creditos,
                   mensualidad: punto.mensualidad,
                 }))}
@@ -819,29 +882,68 @@ export function SeccionMetricas({
   monetizacion,
   errorMonetizacion,
   onReintentarMonetizacion,
+  meses,
+  onMesesChange,
 }: {
   metricas: MetricasDashboard
   monetizacion: MetricasMonetizacion | null
   errorMonetizacion: string | null
   onReintentarMonetizacion: () => void
+  meses: number | undefined
+  onMesesChange: (meses: number | undefined) => void
 }) {
   const marketplace = metricas.marketplace
+  const mensual = !!meses
+
+  const opcionesPeriodo: { label: string; valor: number | undefined }[] = [
+    { label: '1 mes', valor: undefined },
+    { label: '3 meses', valor: 3 },
+    { label: '6 meses', valor: 6 },
+    { label: '12 meses', valor: 12 },
+  ]
 
   return (
     <section aria-labelledby="titulo-metricas" className="pt-3">
-      <header className="flex flex-col gap-1 border-b border-line-strong pb-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-link">
-          Evolución de negocio
-        </p>
-        <h2
-          id="titulo-metricas"
-          className="font-display text-2xl font-semibold tracking-tight text-ink"
+      <header className="flex flex-col gap-4 border-b border-line-strong pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-link">
+            Evolución de negocio
+          </p>
+          <h2
+            id="titulo-metricas"
+            className="font-display text-2xl font-semibold tracking-tight text-ink"
+          >
+            Métricas
+          </h2>
+          <p className="text-sm text-ink-2">
+            Tendencias {mensual ? 'mensuales' : 'semanales'}, calidad y
+            monetización del marketplace.
+          </p>
+        </div>
+        <div
+          role="group"
+          aria-label="Periodo de comparación"
+          className="inline-flex rounded-lg border border-line bg-surface p-1"
         >
-          Métricas
-        </h2>
-        <p className="text-sm text-ink-2">
-          Tendencias semanales, calidad y monetización del marketplace.
-        </p>
+          {opcionesPeriodo.map((opcion) => {
+            const activo = meses === opcion.valor
+            return (
+              <button
+                key={opcion.label}
+                type="button"
+                onClick={() => onMesesChange(opcion.valor)}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
+                  activo
+                    ? 'bg-primary-soft text-link'
+                    : 'text-ink-2 hover:text-ink'
+                }`}
+                aria-pressed={activo}
+              >
+                {opcion.label}
+              </button>
+            )
+          })}
+        </div>
       </header>
 
       <CabeceraSubseccion
@@ -850,7 +952,7 @@ export function SeccionMetricas({
         descripcion="Registros, verificaciones y tiempos del equipo de verificación."
       />
       <div className="mt-4">
-        <SubseccionTecnicos metricas={metricas} />
+        <SubseccionTecnicos metricas={metricas} mensual={mensual} />
       </div>
 
       <CabeceraSubseccion
@@ -860,7 +962,11 @@ export function SeccionMetricas({
       />
       <div className="mt-4">
         {marketplace ? (
-          <SubseccionServicios marketplace={marketplace} />
+          <SubseccionServicios
+            marketplace={marketplace}
+            mensual={mensual}
+            seriesMensuales={metricas.seriesMensuales}
+          />
         ) : (
           <EstadoVacio mensaje="Las métricas de servicios no están disponibles en esta versión del backend. Actualiza el backend para habilitar el bloque de marketplace." />
         )}
@@ -873,7 +979,10 @@ export function SeccionMetricas({
       />
       <div className="mt-4">
         {monetizacion ? (
-          <SubseccionMonetizacion monetizacion={monetizacion} />
+          <SubseccionMonetizacion
+            monetizacion={monetizacion}
+            mensual={mensual}
+          />
         ) : errorMonetizacion ? (
           <ErrorMonetizacion
             mensaje={errorMonetizacion}

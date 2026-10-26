@@ -307,6 +307,36 @@ export interface CancelacionSemana {
   total: number
 }
 
+export interface RegistroMes {
+  mes: string
+  registros: number
+  verificados: number
+  servicios: number
+  completados: number
+  cancelados: number
+  expirados: number
+  rechazados: number
+  tasaConversion: number
+  cancelacionesTardias: number
+  clientesNuevos: number
+  resenas: number
+  calificacionPromedio: number
+}
+
+export interface IngresosMes {
+  mes: string
+  ingresosCreditosMes: number
+  ingresosMensualidadMes: number
+  ingresosComisionesMes: number
+  ingresosTotalMes: number
+}
+
+export interface ModeloMes {
+  mes: string
+  creditos: number
+  mensualidad: number
+}
+
 export interface MetricasDashboard {
   generadoEn: string
   prioridadHoy: {
@@ -339,6 +369,8 @@ export interface MetricasDashboard {
   colaRevision: { tecnicos: ColaRevisionItem[] }
   /** Bloque de métricas de marketplace; solo en backends con la amplicación de T15. */
   marketplace?: MetricasMarketplace
+  /** Series mensuales (solo si se pidió ?meses=N con N>=2). */
+  seriesMensuales?: { meses: number; serie: RegistroMes[] }
 }
 
 export interface ParametrosMetricas {
@@ -346,6 +378,7 @@ export interface ParametrosMetricas {
   semanasCancelaciones?: number
   diasReportes?: number
   limitCola?: number
+  meses?: number
 }
 
 interface MetricasDashboardResponse {
@@ -364,6 +397,7 @@ export async function obtenerMetricasDashboard(
   }
   if (parametros.diasReportes) params.dias_reportes = parametros.diasReportes
   if (parametros.limitCola) params.limit_cola = parametros.limitCola
+  if (parametros.meses) params.meses = parametros.meses
 
   const { data } = await api.get<MetricasDashboardResponse>(
     '/admin/metricas/dashboard',
@@ -664,6 +698,10 @@ export interface MetricasMonetizacion {
   }
   ingresos: { serie: IngresosSemana[] }
   adopcion: { serie: AdopcionSemana[] }
+  mensuales?: {
+    ingresosMensuales: { meses: number; serie: IngresosMes[] }
+    modelosMensuales: { meses: number; serie: ModeloMes[] }
+  }
   resumen: {
     totalConCreditos: number
     totalConMensualidad: number
@@ -683,6 +721,7 @@ interface MetricasMonetizacionResponse {
 
 export interface ParametrosMetricasMonetizacion {
   semanas?: number
+  meses?: number
 }
 
 export async function obtenerMetricasMonetizacion(
@@ -690,6 +729,7 @@ export async function obtenerMetricasMonetizacion(
 ): Promise<MetricasMonetizacion> {
   const params: Record<string, number> = {}
   if (parametros.semanas) params.semanas = parametros.semanas
+  if (parametros.meses) params.meses = parametros.meses
 
   const { data } = await api.get<MetricasMonetizacionResponse>(
     '/admin/metricas/monetizacion',

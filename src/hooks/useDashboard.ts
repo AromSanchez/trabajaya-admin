@@ -18,7 +18,7 @@ interface EstadoDashboard {
   recargar: () => void
 }
 
-export function useDashboard(): EstadoDashboard {
+export function useDashboard(meses?: number): EstadoDashboard {
   const [metricas, setMetricas] = useState<MetricasDashboard | null>(null)
   const [monetizacion, setMonetizacion] = useState<MetricasMonetizacion | null>(
     null,
@@ -39,8 +39,8 @@ export function useDashboard(): EstadoDashboard {
     let activo = true
 
     Promise.allSettled([
-      obtenerMetricasDashboard(),
-      obtenerMetricasMonetizacion(),
+      obtenerMetricasDashboard({ meses }),
+      obtenerMetricasMonetizacion({ semanas: 8, meses }),
     ]).then(([resultadoDashboard, resultadoMonetizacion]) => {
       if (!activo) return
 
@@ -66,7 +66,7 @@ export function useDashboard(): EstadoDashboard {
     return () => {
       activo = false
     }
-  }, [intento])
+  }, [intento, meses])
 
   return {
     metricas,

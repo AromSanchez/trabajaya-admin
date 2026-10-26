@@ -32,6 +32,7 @@
   - `npm run lint` y `npm run build` en verde. **Verificado en navegador** contra el backend real: las 3 subsecciones renderizan con datos (dona de 10 solicitudes, ingresos S/ 780.00, modelo más elegido Créditos), 0 errores de consola.
 
 ## Notas y decisiones
+- **Ajuste posterior — selector de periodo (1/3/6/12 meses) en Métricas:** la sección permite cambiar la granularidad de los gráficos (semanal por defecto, mensual para 3/6/12 meses) con un control en la cabecera; se llama a ambos endpoints con `?meses=N` y se renderizan las series mensuales (`seriesMensuales` / `mensuales`) cuando aplica. `useDashboard` acepta `meses` y refetcha al cambiar. Sin deltas en tarjetas. Lint y build en verde.
 - Paleta: #1976D2 azul principal, #071B36 texto oscuro, negro para texto general.
 - **Sistema de diseño (T10):** tokens en `@theme` (`base`, `surface`, `surface-2`, `ink`, `ink-2`, `ink-3`, `line`, `primary-dark`), escala tipográfica 1.250, espaciado escalado, `radius: 0`, `shadow: none`, `font-display` (Plus Jakarta Sans) + `font-sans` (Inter). Regla: usar solo estas variables, nunca hex en componentes. El aspecto se apoya en **espacio y reglas (1px) antes que en tarjetas**. La primera carga de fuentes es vía Google Fonts en `index.html` (con `preconnect`).
 - Sin librerías de UI: solo CSS con variables. (Se descartó `shadcn/ui` por la regla 6 de AGENTS.md; el sidebar colapsable se implementó a mano con Tailwind, inspirado en el de shadcn.)
