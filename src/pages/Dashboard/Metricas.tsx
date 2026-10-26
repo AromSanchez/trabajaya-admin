@@ -24,9 +24,14 @@ import {
 /* Utilidades                                                          */
 /* ------------------------------------------------------------------ */
 
-function formatearSemanaRango(isoInicio: string, isoFin: string): string {
-  const inicio = new Date(isoInicio)
-  const fin = new Date(isoFin)
+function formatearSemanaRango(isoInicio: string | unknown, isoFin: string | unknown): string {
+  const inicio = new Date(typeof isoInicio === 'string' ? isoInicio : '')
+  const fin = new Date(typeof isoFin === 'string' ? isoFin : '')
+  
+  if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
+    return '—'
+  }
+  
   const fmt = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short' })
   return `${fmt.format(inicio)} - ${fmt.format(fin)}`
 }
