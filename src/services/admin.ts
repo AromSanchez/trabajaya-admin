@@ -387,6 +387,8 @@ export interface MetricasDashboard {
   marketplace?: MetricasMarketplace
   /** Series mensuales (solo si se pidió ?meses=N con N>=2). */
   seriesMensuales?: { meses: number; serie: RegistroMes[] }
+  /** Semanas del mes seleccionado (si se envió ?mes=YYYY-MM). */
+  semanalDelMes?: { semanas: number; serie: SemanaDelMes[] }
   periodo?: { seleccionado: string; anterior: string | null }
 }
 

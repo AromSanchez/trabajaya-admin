@@ -25,7 +25,11 @@ export function useDashboard(mes?: string): EstadoDashboard {
   useEffect(() => {
     let activo = true
 
-    obtenerMetricasDashboard({ mes })
+    obtenerMetricasDashboard({
+      mes,
+      semanasRegistros: 8,
+      semanasCancelaciones: 8,
+    })
       .then((resultado) => {
         if (!activo) return
         setMetricas(resultado)

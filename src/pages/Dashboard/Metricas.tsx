@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ComponentType } from 'react'
 import {
   Cell,
@@ -34,6 +35,28 @@ function formatearSemanaRango(isoInicio: string | unknown, isoFin: string | unkn
   
   const fmt = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short' })
   return `${fmt.format(inicio)} - ${fmt.format(fin)}`
+}
+
+const formatoSemana = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'short',
+})
+
+function formatearSemana(iso: string | unknown): string {
+  if (typeof iso !== 'string') return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  return formatoSemana.format(d).replace('.', '')
+}
+
+function obtenerNombreMes(mesIso: string): string {
+  const [anioStr, mesStr] = mesIso.split('-')
+  const anio = parseInt(anioStr, 10)
+  const mesIndex = parseInt(mesStr, 10) - 1
+  if (isNaN(anio) || isNaN(mesIndex)) return mesIso
+  const fecha = new Date(anio, mesIndex, 1)
+  const nombre = fecha.toLocaleDateString('es-PE', { month: 'long' })
+  return `${capitalizar(nombre)} ${anio}`
 }
 
 const formatoDinero = new Intl.NumberFormat('es-PE', {
@@ -456,95 +479,255 @@ const ESTADOS_SERVICIO_INFO: Record<string, { label: string; colorVar: string }>
 /* Subsección 1 · Técnicos y verificación                              */
 /* ------------------------------------------------------------------ */
 
+interface RegistrosVerificacionesProps {
+  metricas: MetricasDashboard
+  mes: string
+}
+
+function RegistrosVerificacionesMetricas({
+  metricas,
+  mes,
+}: RegistrosVerificacionesProps) {
+  const [vista, setVista] = useState<'grafico' | 'tabla'>('grafico')
+
+  const tieneSemanasMes = Boolean(
+    metricas.semanalDelMes?.serie && metricas.semanalDelMes.serie.length > 0,
+  )
+
+  const datos = tieneSemanasMes
+    ? metricas.semanalDelMes!.serie.map((punto, i) => ({
+        semana: `Sem. ${i + 1} (${formatearSemana(punto.semanaInicio)})`,
+        registros: punto.registrosNuevos,
+        verificados: punto.verificados,
+      }))
+    : metricas.registrosVerificaciones.serie.slice(-8).map((punto) => ({
+        semana: formatearSemana(punto.semanaInicio),
+        registros: punto.registrosNuevos,
+        verificados: punto.verificados,
+      }))
+
+  const descripcion = tieneSemanasMes
+    ? `Técnicos por semana · ${obtenerNombreMes(mes)}`
+    : `Técnicos por semana · últimas ${Math.min(
+        8,
+        metricas.registrosVerificaciones.semanas || 8,
+      )} semanas`
+
+  const hayDatos = datos.some((p) => p.registros > 0 || p.verificados > 0)
+
+  return (
+    <section className="rounded-xl border border-line bg-surface p-5 shadow-sm xl:col-span-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h4 className="font-display text-base font-semibold text-ink">
+            Registros y verificaciones
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">{descripcion}</p>
+        </div>
+        <div className="inline-flex rounded-md border border-line p-0.5">
+          {(['grafico', 'tabla'] as const).map((opcion) => (
+            <button
+              key={opcion}
+              type="button"
+              onClick={() => setVista(opcion)}
+              className={`rounded-[7px] px-3 py-1 text-sm font-medium capitalize transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
+                vista === opcion
+                  ? 'bg-primary-soft text-link'
+                  : 'text-ink-2 hover:text-ink'
+              }`}
+            >
+              {opcion === 'grafico' ? 'Gráfico' : 'Tabla'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        {!hayDatos ? (
+          <EstadoVacio mensaje="No hay registros ni verificaciones en el periodo seleccionado." />
+        ) : vista === 'grafico' ? (
+          <GraficoLineas
+            datos={datos}
+            etiquetasTooltip={{
+              registros: '{v} registros nuevos',
+              verificados: '{v} verificados',
+            }}
+            series={[
+              {
+                clave: 'registros',
+                nombre: 'Registros nuevos',
+                colorVar: 'var(--color-chart-1)',
+              },
+              {
+                clave: 'verificados',
+                nombre: 'Verificados',
+                colorVar: 'var(--color-chart-4)',
+              },
+            ]}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-3">
+                  <th className="py-2 pr-4 font-medium">Semana</th>
+                  <th className="py-2 pr-4 text-right font-medium">
+                    Registros nuevos
+                  </th>
+                  <th className="py-2 text-right font-medium">Verificados</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {datos.map((punto) => (
+                  <tr key={punto.semana}>
+                    <td className="py-2.5 pr-4 text-ink-2">{punto.semana}</td>
+                    <td className="py-2.5 pr-4 text-right tabular-nums text-ink">
+                      {punto.registros}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums text-ink">
+                      {punto.verificados}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function SubseccionTecnicos({
   metricas,
-  mensual,
+  mes,
 }: {
   metricas: MetricasDashboard
-  mensual: boolean
+  mes: string
 }) {
-  const serieMensual = metricas.seriesMensuales?.serie
-  const usarMensual = mensual && !!serieMensual
+  const tieneSemanasMes = Boolean(
+    metricas.semanalDelMes?.serie && metricas.semanalDelMes.serie.length > 0,
+  )
 
-  const serieCancela = (usarMensual
-    ? serieMensual!
-    : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
+  const serieCancela = tieneSemanasMes
+    ? metricas.semanalDelMes!.serie.map((punto, i) => ({
+        semana: `Sem. ${i + 1} (${formatearSemana(punto.semanaInicio)})`,
+        tardias: punto.cancelacionesTardias,
+      }))
+    : metricas.cancelacionesTardiasSemanales.serie.slice(-8).map((punto) => ({
+        semana: formatearSemana(punto.semanaInicio),
+        tardias: punto.total,
+      }))
 
+  const hayCancela = serieCancela.some((p) => p.tardias > 0)
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
-  const hayCancela = serieCancela.some(
-    (punto) =>
-      aNumero(punto.cancelacionesTardias) > 0 || aNumero(punto.total) > 0,
-  )
+  const descripcionCancela = tieneSemanasMes
+    ? `Por semana · ${obtenerNombreMes(mes)}`
+    : `Por semana · últimas ${Math.min(
+        8,
+        metricas.cancelacionesTardiasSemanales.semanas || 8,
+      )} semanas`
+
+  const serieMensual = metricas.seriesMensuales?.serie
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-3">
-      <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-        <h4 className="font-display text-base font-semibold text-ink">
-          Cancelaciones tardías
-        </h4>
-        <p className="mt-0.5 text-sm text-ink-2">
-          Por semana · últimas 8 semanas
-        </p>
-        <div className="mt-4">
-          {hayCancela ? (
-            <GraficoLineas
-              datos={serieCancela.map((punto) => ({
-                semana: formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
-                tardias: aNumero(punto.total),
-              }))}
-              etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
-              series={[
-                {
-                  clave: 'tardias',
-                  nombre: 'Cancelaciones tardías',
-                  colorVar: 'var(--color-chart-5)',
-                },
-              ]}
-            />
-          ) : (
-            <EstadoVacio mensaje="Sin cancelaciones tardías en el periodo." />
-          )}
-        </div>
-      </section>
+        <RegistrosVerificacionesMetricas metricas={metricas} mes={mes} />
 
-      <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-        <h4 className="font-display text-base font-semibold text-ink">
-          Tiempo promedio de verificación
-        </h4>
-        <p className="mt-0.5 text-sm text-ink-2">
-          Del registro a la primera decisión
-        </p>
-        <div className="mt-4">
-          {promedioHoras === null ? (
-            <EstadoVacio mensaje="Aún no hay decisiones suficientes para calcular el promedio." />
-          ) : (
-            <div className="pt-2">
-              <p className="font-display text-5xl font-semibold leading-none tabular-nums text-ink">
-                {Math.round(promedioHoras)}
-                <span className="ml-2 text-lg font-medium text-ink-3">h</span>
-              </p>
-              {vsMesPasadoPorcentaje !== null && (
-                <p
-                  className={`mt-3 text-sm font-semibold ${
-                    vsMesPasadoPorcentaje < 0
-                      ? 'text-success-text'
-                      : 'text-danger-text'
-                  }`}
-                >
-                  {vsMesPasadoPorcentaje < 0 ? '↓' : '↑'}{' '}
-                  {Math.abs(vsMesPasadoPorcentaje)}% vs mes pasado
+        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">
+            Tiempo promedio de verificación
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            Del registro a la primera decisión
+          </p>
+          <div className="mt-4">
+            {promedioHoras === null ? (
+              <EstadoVacio mensaje="Aún no hay decisiones suficientes para calcular el promedio." />
+            ) : (
+              <div className="pt-2">
+                <p className="font-display text-5xl font-semibold leading-none tabular-nums text-ink">
+                  {Math.round(promedioHoras)}
+                  <span className="ml-2 text-lg font-medium text-ink-3">h</span>
                 </p>
-              )}
-              <p className="mt-3 text-xs leading-relaxed text-ink-3">
-                Negativo (↓) es favorable: se verificó más rápido que el mes
-                pasado.
-              </p>
+                {vsMesPasadoPorcentaje !== null && (
+                  <p
+                    className={`mt-3 text-sm font-semibold ${
+                      vsMesPasadoPorcentaje < 0
+                        ? 'text-success-text'
+                        : 'text-danger-text'
+                    }`}
+                  >
+                    {vsMesPasadoPorcentaje < 0 ? '↓' : '↑'}{' '}
+                    {Math.abs(vsMesPasadoPorcentaje)}% vs mes pasado
+                  </p>
+                )}
+                <p className="mt-3 text-xs leading-relaxed text-ink-3">
+                  Negativo (↓) es favorable: se verificó más rápido que el mes
+                  pasado.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">
+            Cancelaciones tardías
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">{descripcionCancela}</p>
+          <div className="mt-4">
+            {hayCancela ? (
+              <GraficoLineas
+                datos={serieCancela}
+                etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
+                series={[
+                  {
+                    clave: 'tardias',
+                    nombre: 'Cancelaciones tardías',
+                    colorVar: 'var(--color-chart-5)',
+                  },
+                ]}
+              />
+            ) : (
+              <EstadoVacio mensaje="Sin cancelaciones tardías en el periodo." />
+            )}
+          </div>
+        </section>
+
+        {serieMensual && serieMensual.length >= 2 && (
+          <div className="rounded-xl border border-line bg-surface p-5 shadow-sm xl:col-span-2">
+            <h4 className="font-display text-base font-semibold text-ink">
+              Comparación vs mes anterior
+            </h4>
+            <p className="mt-0.5 text-sm text-ink-2">
+              {obtenerNombreMes(serieMensual[serieMensual.length - 1].mes)} frente a{' '}
+              {obtenerNombreMes(serieMensual[serieMensual.length - 2].mes)}
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <DeltaMes
+                etiqueta="Registrados"
+                actual={serieMensual[serieMensual.length - 1].registros}
+                anterior={serieMensual[serieMensual.length - 2].registros}
+              />
+              <DeltaMes
+                etiqueta="Verificados"
+                actual={serieMensual[serieMensual.length - 1].verificados}
+                anterior={serieMensual[serieMensual.length - 2].verificados}
+              />
+              <DeltaMes
+                etiqueta="Cancelaciones tardías"
+                actual={serieMensual[serieMensual.length - 1].cancelacionesTardias}
+                anterior={serieMensual[serieMensual.length - 2].cancelacionesTardias}
+                invertir
+              />
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -962,7 +1145,7 @@ export function SeccionMetricas({
         descripcion="Registros, verificaciones y tiempos del equipo de verificación."
       />
       <div className="mt-4">
-        <SubseccionTecnicos metricas={metricas} mensual={mensual} />
+        <SubseccionTecnicos metricas={metricas} mes={mes} />
       </div>
 
       <CabeceraSubseccion

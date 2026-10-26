@@ -11,7 +11,6 @@ import { obtenerIniciales } from '../../components/navigation'
 import {
   BarChart,
   BarList,
-  LineChart,
   Panel,
   Sparkline,
 } from '../../components/charts'
@@ -255,111 +254,12 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
           </Link>
         </div>
       </div>
-    </section>
+</section>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/* Registros y verificaciones (gráfico / tabla)                        */
-/* ------------------------------------------------------------------ */
-
-function RegistrosVerificaciones({ metricas }: { metricas: MetricasDashboard }) {
-  const [vista, setVista] = useState<'grafico' | 'tabla'>('grafico')
-  const serie = metricas.registrosVerificaciones.serie
-  const etiquetas = serie.map((punto) => formatearSemana(punto.semanaInicio))
-
-  return (
-    <Panel
-      titulo="Registros y verificaciones"
-      descripcion={`Técnicos por semana · últimas ${metricas.registrosVerificaciones.semanas} semanas`}
-      className="xl:col-span-2"
-      accion={
-        <div className="inline-flex rounded-md border border-line p-0.5">
-          {(['grafico', 'tabla'] as const).map((opcion) => (
-            <button
-              key={opcion}
-              type="button"
-              onClick={() => setVista(opcion)}
-              className={`rounded-[7px] px-3 py-1 text-sm font-medium capitalize transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
-                vista === opcion
-                  ? 'bg-primary-soft text-link'
-                  : 'text-ink-2 hover:text-ink'
-              }`}
-            >
-              {opcion === 'grafico' ? 'Gráfico' : 'Tabla'}
-            </button>
-          ))}
-        </div>
-      }
-    >
-      {vista === 'grafico' ? (
-        <>
-          <div className="mb-4 flex flex-wrap items-center gap-5 text-sm">
-            <span className="inline-flex items-center gap-2 text-ink-2">
-              <span className="h-2.5 w-4 rounded-full bg-chart-1" />
-              Registros nuevos
-            </span>
-            <span className="inline-flex items-center gap-2 text-ink-2">
-              <span className="h-2.5 w-4 rounded-full bg-chart-4" />
-              Verificados
-            </span>
-          </div>
-          <LineChart
-            etiquetas={etiquetas}
-            series={[
-              {
-                nombre: 'Registros nuevos',
-                colorVar: 'var(--color-chart-1)',
-                datos: serie.map((punto) => punto.registrosNuevos),
-                mostrarPuntos: true,
-                relleno: true,
-              },
-              {
-                nombre: 'Verificados',
-                colorVar: 'var(--color-chart-4)',
-                datos: serie.map((punto) => punto.verificados),
-                punteada: true,
-                mostrarPuntos: true,
-              },
-            ]}
-          />
-        </>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-3">
-                <th className="py-2 pr-4 font-medium">Semana</th>
-                <th className="py-2 pr-4 text-right font-medium">
-                  Registros nuevos
-                </th>
-                <th className="py-2 text-right font-medium">Verificados</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {serie.map((punto) => (
-                <tr key={punto.semanaInicio}>
-                  <td className="py-2.5 pr-4 text-ink-2">
-                    {formatearSemana(punto.semanaInicio)}
-                  </td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-ink">
-                    {punto.registrosNuevos}
-                  </td>
-                  <td className="py-2.5 text-right tabular-nums text-ink">
-                    {punto.verificados}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Panel>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/* Técnicos por estado                                                 */
+/* Técnicos por estado                                                */
 /* ------------------------------------------------------------------ */
 
 function TecnicosPorEstado({ metricas }: { metricas: MetricasDashboard }) {
@@ -793,14 +693,30 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Gráfico + estados */}
-      <section className="grid gap-4 xl:grid-cols-3">
-        <RegistrosVerificaciones metricas={metricas} />
+      {/* Distribución de técnicos e incidencias */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <TecnicosPorEstado metricas={metricas} />
-      </section>
 
-      {/* Motivos, cancelaciones y especialidad */}
-      <section className="grid gap-4 xl:grid-cols-3">
+        <Panel
+          titulo="Técnicos por especialidad"
+          descripcion={`Sobre ${metricas.tecnicosPorOficio.total} registrados`}
+        >
+          {metricas.tecnicosPorOficio.oficios.length === 0 ? (
+            <p className="py-6 text-center text-sm text-ink-2">
+              Aún no hay técnicos registrados.
+            </p>
+          ) : (
+            <BarList
+              items={metricas.tecnicosPorOficio.oficios.map((oficio) => ({
+                etiqueta: capitalizar(oficio.oficio) || 'Sin especialidad',
+                total: oficio.total,
+                porcentaje: oficio.porcentaje,
+              }))}
+              colorClass="bg-chart-2"
+            />
+          )}
+        </Panel>
+
         <Panel
           titulo="Reportes por motivo"
           descripcion={`Últimos ${metricas.reportesPorMotivo.dias} días · ${metricas.reportesPorMotivo.total} reportes`}
@@ -843,26 +759,6 @@ export default function Dashboard() {
               colorVar="var(--color-chart-2)"
               colorPicoVar="var(--color-chart-1)"
               resaltarPico
-            />
-          )}
-        </Panel>
-
-        <Panel
-          titulo="Técnicos por especialidad"
-          descripcion={`Sobre ${metricas.tecnicosPorOficio.total} registrados`}
-        >
-          {metricas.tecnicosPorOficio.oficios.length === 0 ? (
-            <p className="py-6 text-center text-sm text-ink-2">
-              Aún no hay técnicos registrados.
-            </p>
-          ) : (
-            <BarList
-              items={metricas.tecnicosPorOficio.oficios.map((oficio) => ({
-                etiqueta: capitalizar(oficio.oficio) || 'Sin especialidad',
-                total: oficio.total,
-                porcentaje: oficio.porcentaje,
-              }))}
-              colorClass="bg-chart-2"
             />
           )}
         </Panel>
