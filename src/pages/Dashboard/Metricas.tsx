@@ -1,0 +1,888 @@
+import type { ComponentType } from 'react'
+import {
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import type { MetricasDashboard, MetricasMonetizacion } from '../../services/admin'
+import {
+  IconAlertTriangle,
+  IconCheckCircle,
+  IconCoins,
+  IconFlag,
+  IconRefresh,
+  IconUsers,
+} from '../../components/icons'
+
+/* ------------------------------------------------------------------ */
+/* Utilidades                                                          */
+/* ------------------------------------------------------------------ */
+
+const formatoSemana = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'short',
+})
+
+function formatearSemana(iso: string): string {
+  return formatoSemana.format(new Date(iso)).replace('.', '')
+}
+
+const formatoDinero = new Intl.NumberFormat('es-PE', {
+  style: 'currency',
+  currency: 'PEN',
+  minimumFractionDigits: 2,
+})
+
+function formatearDinero(valor: number): string {
+  return formatoDinero.format(valor)
+}
+
+function capitalizar(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
+/* ------------------------------------------------------------------ */
+/* Tipos de datos internos                                             */
+/* ------------------------------------------------------------------ */
+
+interface PuntoSerie {
+  semana: string
+  [clave: string]: string | number
+}
+
+interface SerieDef {
+  clave: string
+  nombre: string
+  colorVar: string
+  punteada?: boolean
+}
+
+interface FilaTooltip {
+  color: string
+  nombre: string
+  texto: string
+}
+
+/* ------------------------------------------------------------------ */
+/* Gráfico de líneas (recharts) con leyenda y tooltip                  */
+/* ------------------------------------------------------------------ */
+
+function TooltipLineas({
+  activo,
+  etiqueta,
+  filas,
+}: {
+  activo: boolean
+  etiqueta: string
+  filas: FilaTooltip[]
+}) {
+  if (!activo || filas.length === 0) return null
+
+  return (
+    <div className="min-w-40 rounded-md border border-line bg-surface px-3 py-2 text-xs shadow-md">
+      <p className="font-semibold text-ink">{etiqueta}</p>
+      <ul className="mt-1.5 space-y-1">
+        {filas.map((fila) => (
+          <li key={fila.nombre} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-ink-2">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: fila.color }}
+                aria-hidden="true"
+              />
+              {fila.nombre}
+            </span>
+            <span className="tabular-nums font-semibold text-ink">
+              {fila.texto}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function LeyendaLineas({ series }: { series: SerieDef[] }) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-2">
+      {series.map((serie) => (
+        <span key={serie.clave} className="inline-flex items-center gap-2">
+          <span
+            className="h-2.5 w-4 rounded-full"
+            style={{ backgroundColor: serie.colorVar }}
+            aria-hidden="true"
+          />
+          {serie.nombre}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function GraficoLineas({
+  datos,
+  series,
+  alto = 230,
+  etiquetasTooltip,
+}: {
+  datos: PuntoSerie[]
+  series: SerieDef[]
+  alto?: number
+  etiquetasTooltip: Record<string, string>
+}) {
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={alto}>
+        <LineChart
+          data={datos}
+          margin={{ top: 10, right: 10, bottom: 0, left: -18 }}
+        >
+          <XAxis
+            dataKey="semana"
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            allowDecimals={false}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+          />
+          <Tooltip
+            cursor={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null
+              const filas = payload.map((entrada) => {
+                const serie = series.find((s) => s.clave === entrada.dataKey)
+                const valor = typeof entrada.value === 'number' ? entrada.value : 0
+                const formateo = etiquetasTooltip[serie?.clave ?? '']
+                return {
+                  color: serie?.colorVar ?? 'var(--color-ink-3)',
+                  nombre: serie?.nombre ?? String(entrada.dataKey),
+                  texto: formateo ? formateo.replace('{v}', String(valor)) : String(valor),
+                }
+              })
+              return (
+                <TooltipLineas
+                  activo={active}
+                  etiqueta={String(label ?? '')}
+                  filas={filas}
+                />
+              )
+            }}
+          />
+          {series.map((serie) => (
+            <Line
+              key={serie.clave}
+              type="monotone"
+              dataKey={serie.clave}
+              name={serie.nombre}
+              stroke={serie.colorVar}
+              strokeWidth={2.4}
+              strokeDasharray={serie.punteada ? '6 4' : undefined}
+              dot={{ r: 2.5, fill: 'var(--color-surface)', strokeWidth: 2 }}
+              activeDot={{ r: 4.5, strokeWidth: 0 }}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      <LeyendaLineas series={series} />
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Gráfico de dona (recharts)                                          */
+/* ------------------------------------------------------------------ */
+
+interface FilaDona {
+  nombre: string
+  valor: number
+  colorVar: string
+}
+
+function GraficoDona({ filas }: { filas: FilaDona[] }) {
+  const visibles = filas.filter((fila) => fila.valor > 0)
+  const total = visibles.reduce((suma, fila) => suma + fila.valor, 0)
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-[1fr_auto] md:items-center">
+      <div className="relative mx-auto w-full max-w-[220px]">
+        <ResponsiveContainer width="100%" height={180}>
+          <PieChart>
+            <Pie
+              data={visibles}
+              dataKey="valor"
+              nameKey="nombre"
+              innerRadius={58}
+              outerRadius={88}
+              paddingAngle={2}
+              strokeWidth={0}
+            >
+              {visibles.map((fila) => (
+                <Cell key={fila.nombre} fill={fila.colorVar} />
+              ))}
+            </Pie>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null
+                const entrada = payload[0]
+                const fila = visibles.find((f) => f.nombre === entrada.name)
+                const valor = typeof entrada.value === 'number' ? entrada.value : 0
+                const porcentaje =
+                  total > 0 ? Math.round((valor / total) * 1000) / 10 : 0
+                return (
+                  <TooltipLineas
+                    activo={active}
+                    etiqueta={String(entrada.name ?? '')}
+                    filas={[
+                      {
+                        color: fila?.colorVar ?? 'var(--color-ink-3)',
+                        nombre: 'Servicios',
+                        texto: `${valor} (${porcentaje}%)`,
+                      },
+                    ]}
+                  />
+                )
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div
+          className="pointer-events-none absolute inset-0 grid place-items-center"
+          aria-hidden="true"
+        >
+          <div className="text-center">
+            <p className="font-display text-3xl font-semibold tabular-nums text-ink">
+              {total}
+            </p>
+            <p className="text-xs text-ink-3">solicitudes</p>
+          </div>
+        </div>
+      </div>
+
+      <ul className="space-y-2.5 text-sm">
+        {visibles.map((fila) => (
+          <li key={fila.nombre} className="flex items-center justify-between gap-6">
+            <span className="flex items-center gap-2 text-ink-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: fila.colorVar }}
+                aria-hidden="true"
+              />
+              {fila.nombre}
+            </span>
+            <span className="tabular-nums">
+              <span className="font-semibold text-ink">{fila.valor}</span>
+              <span className="ml-2 text-ink-3">
+                {total > 0
+                  ? `${Math.round((fila.valor / total) * 1000) / 10}%`
+                  : '0%'}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Tarjeta métrica compacta                                            */
+/* ------------------------------------------------------------------ */
+
+function TarjetaMetrica({
+  titulo,
+  valor,
+  unidad,
+  descripcion,
+  delta,
+  icono: Icon,
+}: {
+  titulo: string
+  valor: string
+  unidad?: string
+  descripcion: string
+  delta?:
+    | { direccion: 'arriba' | 'abajo'; texto: string; favorable: boolean }
+    | null
+  icono?: ComponentType<{ className?: string }>
+}) {
+  return (
+    <article className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+          {titulo}
+        </p>
+        {Icon && (
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary-soft text-link">
+            <Icon className="h-4.5 w-4.5" />
+          </span>
+        )}
+      </div>
+      <p className="mt-3 font-display text-3xl font-semibold leading-none tabular-nums text-ink">
+        {valor}
+        {unidad && (
+          <span className="ml-1.5 text-base font-medium text-ink-3">{unidad}</span>
+        )}
+      </p>
+      {delta && (
+        <p
+          className={`mt-2 text-sm font-medium ${
+            delta.favorable ? 'text-success-text' : 'text-danger-text'
+          }`}
+        >
+          {delta.direccion === 'arriba' ? '↑' : '↓'} {delta.texto}
+        </p>
+      )}
+      <p className="mt-2 text-xs leading-relaxed text-ink-3">{descripcion}</p>
+    </article>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Estados vacíos y de error                                           */
+/* ------------------------------------------------------------------ */
+
+function EstadoVacio({ mensaje }: { mensaje: string }) {
+  return (
+    <div className="grid place-items-center rounded-lg bg-surface-2 px-4 py-10 text-center">
+      <p className="text-sm text-ink-2">{mensaje}</p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Cabecera de subsección                                              */
+/* ------------------------------------------------------------------ */
+
+function CabeceraSubseccion({
+  numero,
+  titulo,
+  descripcion,
+}: {
+  numero: string
+  titulo: string
+  descripcion: string
+}) {
+  return (
+    <header className="mt-10 flex items-start gap-4 border-t border-line pt-6">
+      <span
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-soft font-display text-sm font-bold text-link"
+        aria-hidden="true"
+      >
+        {numero}
+      </span>
+      <div>
+        <h3 className="font-display text-xl font-semibold tracking-tight text-ink">
+          {titulo}
+        </h3>
+        <p className="mt-0.5 text-sm text-ink-2">{descripcion}</p>
+      </div>
+    </header>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Estados de servicio (labels y tokens de color)                      */
+/* ------------------------------------------------------------------ */
+
+const ESTADOS_SERVICIO_INFO: Record<string, { label: string; colorVar: string }> = {
+  pendiente: { label: 'Pendiente', colorVar: 'var(--color-pending)' },
+  aceptado: { label: 'Aceptado', colorVar: 'var(--color-revision)' },
+  completado: { label: 'Completado', colorVar: 'var(--color-success)' },
+  cancelado: { label: 'Cancelado', colorVar: 'var(--color-danger)' },
+  expirado: { label: 'Expirado', colorVar: 'var(--color-suspended)' },
+  rechazado: { label: 'Rechazado', colorVar: 'var(--color-warning)' },
+}
+
+/* ------------------------------------------------------------------ */
+/* Subsección 1 · Técnicos y verificación                              */
+/* ------------------------------------------------------------------ */
+
+function SubseccionTecnicos({ metricas }: { metricas: MetricasDashboard }) {
+  const serieRegistros = metricas.registrosVerificaciones.serie
+  const serieCancela = metricas.cancelacionesTardiasSemanales.serie
+  const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
+
+  const hayRegistros = serieRegistros.some(
+    (punto) => punto.registrosNuevos > 0 || punto.verificados > 0,
+  )
+  const hayCancela = serieCancela.some((punto) => punto.total > 0)
+
+  return (
+    <div className="grid gap-4 xl:grid-cols-3">
+      <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <h4 className="font-display text-base font-semibold text-ink">
+          Registros vs verificaciones
+        </h4>
+        <p className="mt-0.5 text-sm text-ink-2">
+          Por semana · últimas {metricas.registrosVerificaciones.semanas} semanas
+        </p>
+        <div className="mt-4">
+          {hayRegistros ? (
+            <GraficoLineas
+              datos={serieRegistros.map((punto) => ({
+                semana: formatearSemana(punto.semanaInicio),
+                registros: punto.registrosNuevos,
+                verificados: punto.verificados,
+              }))}
+              etiquetasTooltip={{
+                registros: '{v} registros',
+                verificados: '{v} verificados',
+              }}
+              series={[
+                {
+                  clave: 'registros',
+                  nombre: 'Registrados',
+                  colorVar: 'var(--color-chart-1)',
+                },
+                {
+                  clave: 'verificados',
+                  nombre: 'Verificados',
+                  colorVar: 'var(--color-chart-4)',
+                },
+              ]}
+            />
+          ) : (
+            <EstadoVacio mensaje="Aún no hay técnicos registrados en el periodo." />
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <h4 className="font-display text-base font-semibold text-ink">
+          Cancelaciones tardías
+        </h4>
+        <p className="mt-0.5 text-sm text-ink-2">
+          Por semana · últimas {metricas.cancelacionesTardiasSemanales.semanas}{' '}
+          semanas
+        </p>
+        <div className="mt-4">
+          {hayCancela ? (
+            <GraficoLineas
+              datos={serieCancela.map((punto) => ({
+                semana: formatearSemana(punto.semanaInicio),
+                tardias: punto.total,
+              }))}
+              etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
+              series={[
+                {
+                  clave: 'tardias',
+                  nombre: 'Cancelaciones tardías',
+                  colorVar: 'var(--color-chart-5)',
+                },
+              ]}
+            />
+          ) : (
+            <EstadoVacio mensaje="Sin cancelaciones tardías en el periodo." />
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <h4 className="font-display text-base font-semibold text-ink">
+          Tiempo promedio de verificación
+        </h4>
+        <p className="mt-0.5 text-sm text-ink-2">
+          Del registro a la primera decisión
+        </p>
+        <div className="mt-4">
+          {promedioHoras === null ? (
+            <EstadoVacio mensaje="Aún no hay decisiones suficientes para calcular el promedio." />
+          ) : (
+            <div className="pt-2">
+              <p className="font-display text-5xl font-semibold leading-none tabular-nums text-ink">
+                {Math.round(promedioHoras)}
+                <span className="ml-2 text-lg font-medium text-ink-3">h</span>
+              </p>
+              {vsMesPasadoPorcentaje !== null && (
+                <p
+                  className={`mt-3 text-sm font-semibold ${
+                    vsMesPasadoPorcentaje < 0
+                      ? 'text-success-text'
+                      : 'text-danger-text'
+                  }`}
+                >
+                  {vsMesPasadoPorcentaje < 0 ? '↓' : '↑'}{' '}
+                  {Math.abs(vsMesPasadoPorcentaje)}% vs mes pasado
+                </p>
+              )}
+              <p className="mt-3 text-xs leading-relaxed text-ink-3">
+                Negativo (↓) es favorable: se verificó más rápido que el mes
+                pasado.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Subsección 2 · Servicios y clientes                                 */
+/* ------------------------------------------------------------------ */
+
+function SubseccionServicios({
+  marketplace,
+}: {
+  marketplace: NonNullable<MetricasDashboard['marketplace']>
+}) {
+  const { servicios, clientes, calidad } = marketplace
+  const serieCompletadas = servicios.evolucionCompletadasSemanal.serie
+
+  const dona = servicios.porEstado.map((estado) => ({
+    nombre: ESTADOS_SERVICIO_INFO[estado.estado]?.label ?? capitalizar(estado.estado),
+    valor: estado.total,
+    colorVar:
+      ESTADOS_SERVICIO_INFO[estado.estado]?.colorVar ?? 'var(--color-pending)',
+  }))
+
+  const hayCompletadas = serieCompletadas.some((punto) => punto.completadas > 0)
+  const hayDona = servicios.porEstado.some((estado) => estado.total > 0)
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">
+            Servicios completados
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            Por semana · últimas {servicios.evolucionCompletadasSemanal.semanas}{' '}
+            semanas
+          </p>
+          <div className="mt-4">
+            {hayCompletadas ? (
+              <GraficoLineas
+                datos={serieCompletadas.map((punto) => ({
+                  semana: formatearSemana(punto.semanaInicio),
+                  completadas: punto.completadas,
+                }))}
+                etiquetasTooltip={{ completadas: '{v} completados' }}
+                series={[
+                  {
+                    clave: 'completadas',
+                    nombre: 'Completados',
+                    colorVar: 'var(--color-chart-1)',
+                  },
+                ]}
+              />
+            ) : (
+              <EstadoVacio mensaje="Sin servicios completados en el periodo." />
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">
+            Distribución por estado
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            Total de solicitudes: {servicios.total}
+          </p>
+          <div className="mt-4">
+            {hayDona ? (
+              <GraficoDona filas={dona} />
+            ) : (
+              <EstadoVacio mensaje="Aún no hay servicios solicitados." />
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <TarjetaMetrica
+          titulo="Tasa de conversión"
+          valor={`${servicios.tasaConversionCompletado}%`}
+          descripcion="Porcentaje de solicitudes que terminan en completado."
+          icono={IconCheckCircle}
+        />
+        <TarjetaMetrica
+          titulo="Retención de clientes"
+          valor={`${clientes.retencionDosOMasCompletados}%`}
+          descripcion={`${clientes.activos30Dias} de ${clientes.total} clientes con actividad en 30 días.`}
+          icono={IconUsers}
+        />
+        <TarjetaMetrica
+          titulo="Tasa de reseñas"
+          valor={`${calidad.tasaResenas}%`}
+          descripcion={`Calificación promedio de la plataforma: ${
+            calidad.calificacionPromedioGeneral ?? '—'
+          }.`}
+          icono={IconFlag}
+        />
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Subsección 3 · Monetización                                         */
+/* ------------------------------------------------------------------ */
+
+function SubseccionMonetizacion({
+  monetizacion,
+}: {
+  monetizacion: MetricasMonetizacion
+}) {
+  const { modelosActivos, ingresos, resumen } = monetizacion
+
+  const serieModelos = modelosActivos.serie
+  const serieIngresos = ingresos.serie
+
+  const hayModelos = serieModelos.some(
+    (punto) => punto.creditos > 0 || punto.mensualidad > 0,
+  )
+  const hayIngresos = serieIngresos.some(
+    (punto) =>
+      punto.ingresosCreditosSemana > 0 ||
+      punto.ingresosMensualidadSemana > 0 ||
+      punto.ingresosComisionesSemana > 0,
+  )
+
+  const totalMonetizados = resumen.totalConCreditos + resumen.totalConMensualidad
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">
+            Ingresos por semana
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            Recargas de créditos · plan mensual · comisiones
+          </p>
+          <div className="mt-4">
+            {hayIngresos ? (
+              <GraficoLineas
+                datos={serieIngresos.map((punto) => ({
+                  semana: formatearSemana(punto.semanaInicio),
+                  creditos: punto.ingresosCreditosSemana,
+                  mensualidad: punto.ingresosMensualidadSemana,
+                  comisiones: punto.ingresosComisionesSemana,
+                }))}
+                etiquetasTooltip={{
+                  creditos: 'S/ {v} en créditos',
+                  mensualidad: 'S/ {v} en mensualidad',
+                  comisiones: 'S/ {v} en comisiones',
+                }}
+                series={[
+                  {
+                    clave: 'creditos',
+                    nombre: 'Créditos',
+                    colorVar: 'var(--color-chart-1)',
+                  },
+                  {
+                    clave: 'mensualidad',
+                    nombre: 'Mensualidad',
+                    colorVar: 'var(--color-chart-3)',
+                  },
+                  {
+                    clave: 'comisiones',
+                    nombre: 'Comisiones',
+                    colorVar: 'var(--color-chart-4)',
+                  },
+                ]}
+              />
+            ) : (
+              <EstadoVacio mensaje="Sin ingresos registrados en el periodo." />
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">
+            Técnicos por modelo
+          </h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            Créditos vs mensualidad · últimas {serieModelos.length} semanas
+          </p>
+          <div className="mt-4">
+            {hayModelos ? (
+              <GraficoLineas
+                datos={serieModelos.map((punto) => ({
+                  semana: formatearSemana(punto.semanaInicio),
+                  creditos: punto.creditos,
+                  mensualidad: punto.mensualidad,
+                }))}
+                etiquetasTooltip={{
+                  creditos: '{v} con créditos',
+                  mensualidad: '{v} con mensualidad',
+                }}
+                series={[
+                  {
+                    clave: 'creditos',
+                    nombre: 'Con créditos',
+                    colorVar: 'var(--color-chart-1)',
+                  },
+                  {
+                    clave: 'mensualidad',
+                    nombre: 'Con mensualidad',
+                    colorVar: 'var(--color-chart-3)',
+                    punteada: true,
+                  },
+                ]}
+              />
+            ) : (
+              <EstadoVacio mensaje="Ningún técnico con modelo activo en el periodo." />
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <TarjetaMetrica
+          titulo="Total monetizados"
+          valor={String(totalMonetizados)}
+          descripcion={`${resumen.porcentajeMonetizados}% de técnicos verificados. ${
+            resumen.totalSinModelo
+          } sin modelo.`}
+          icono={IconUsers}
+        />
+        <TarjetaMetrica
+          titulo="Modelo más elegido"
+          valor={
+            resumen.modeloMasElegido
+              ? capitalizar(resumen.modeloMasElegido)
+              : '—'
+          }
+          descripcion="Modelo con más técnicos activos hoy."
+          icono={IconCheckCircle}
+        />
+        <TarjetaMetrica
+          titulo="Ingresos totales"
+          valor={formatearDinero(resumen.ingresosTotales)}
+          descripcion={`Créditos ${formatearDinero(
+            resumen.ingresosTotalesCreditos,
+          )} · mensualidad ${formatearDinero(
+            resumen.ingresosTotalesMensualidad,
+          )} · comisiones ${formatearDinero(resumen.ingresosTotalesComisiones)}.`}
+          icono={IconCoins}
+        />
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Fallback monetización                                               */
+/* ------------------------------------------------------------------ */
+
+function ErrorMonetizacion({
+  mensaje,
+  onReintentar,
+}: {
+  mensaje: string
+  onReintentar: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger-soft text-danger-text">
+          <IconAlertTriangle className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-ink">
+            No se pudieron cargar las métricas de monetización
+          </p>
+          <p className="mt-0.5 text-sm text-ink-2">{mensaje}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onReintentar}
+        className="inline-flex shrink-0 items-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-sm transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+      >
+        <IconRefresh className="h-4 w-4" />
+        Reintentar
+      </button>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Sección principal                                                   */
+/* ------------------------------------------------------------------ */
+
+export function SeccionMetricas({
+  metricas,
+  monetizacion,
+  errorMonetizacion,
+  onReintentarMonetizacion,
+}: {
+  metricas: MetricasDashboard
+  monetizacion: MetricasMonetizacion | null
+  errorMonetizacion: string | null
+  onReintentarMonetizacion: () => void
+}) {
+  const marketplace = metricas.marketplace
+
+  return (
+    <section aria-labelledby="titulo-metricas" className="pt-3">
+      <header className="flex flex-col gap-1 border-b border-line-strong pb-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-link">
+          Evolución de negocio
+        </p>
+        <h2
+          id="titulo-metricas"
+          className="font-display text-2xl font-semibold tracking-tight text-ink"
+        >
+          Métricas
+        </h2>
+        <p className="text-sm text-ink-2">
+          Tendencias semanales, calidad y monetización del marketplace.
+        </p>
+      </header>
+
+      <CabeceraSubseccion
+        numero="1"
+        titulo="Métricas de técnicos y verificación"
+        descripcion="Registros, verificaciones y tiempos del equipo de verificación."
+      />
+      <div className="mt-4">
+        <SubseccionTecnicos metricas={metricas} />
+      </div>
+
+      <CabeceraSubseccion
+        numero="2"
+        titulo="Métricas de servicios y clientes"
+        descripcion="De la solicitud al completado: conversión, retención y reseñas."
+      />
+      <div className="mt-4">
+        {marketplace ? (
+          <SubseccionServicios marketplace={marketplace} />
+        ) : (
+          <EstadoVacio mensaje="Las métricas de servicios no están disponibles en esta versión del backend. Actualiza el backend para habilitar el bloque de marketplace." />
+        )}
+      </div>
+
+      <CabeceraSubseccion
+        numero="3"
+        titulo="Métricas de monetización"
+        descripcion="Qué modelo eligen los técnicos y cuáles ingresan, semana a semana."
+      />
+      <div className="mt-4">
+        {monetizacion ? (
+          <SubseccionMonetizacion monetizacion={monetizacion} />
+        ) : errorMonetizacion ? (
+          <ErrorMonetizacion
+            mensaje={errorMonetizacion}
+            onReintentar={onReintentarMonetizacion}
+          />
+        ) : (
+          <EstadoVacio mensaje="Cargando métricas de monetización…" />
+        )}
+      </div>
+    </section>
+  )
+}

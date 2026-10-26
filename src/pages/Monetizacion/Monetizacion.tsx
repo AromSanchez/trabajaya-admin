@@ -293,7 +293,22 @@ export default function Monetizacion() {
   }
 
   useEffect(() => {
-    cargarResumen()
+    let vigente = true
+    const cargar = async () => {
+      setCargandoResumen(true)
+      try {
+        const datos = await obtenerResumenMonetizacion()
+        if (vigente) setResumen(datos)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        if (vigente) setCargandoResumen(false)
+      }
+    }
+    cargar()
+    return () => {
+      vigente = false
+    }
   }, [])
 
   useEffect(() => {

@@ -265,6 +265,43 @@ export interface RegistroSemana {
   verificados: number
 }
 
+export interface EstadoServicioConteo {
+  estado: string
+  total: number
+  porcentaje: number
+}
+
+export interface CompletadasSemana {
+  semanaInicio: string
+  completadas: number
+}
+
+export interface MetricasMarketplace {
+  servicios: {
+    total: number
+    porEstado: EstadoServicioConteo[]
+    tasaConversionCompletado: number
+    evolucionCompletadasSemanal: { semanas: number; serie: CompletadasSemana[] }
+    tiempoPromedioSolicitudAAceptacionHoras: number | null
+    tiempoPromedioAceptacionACompletadoHoras: number | null
+  }
+  clientes: {
+    total: number
+    nuevosEstaSemana: number
+    activos30Dias: number
+    retencionDosOMasCompletados: number
+  }
+  calidad: {
+    calificacionPromedioGeneral: number | null
+    tasaResenas: number
+    distribucionCalificaciones: { estrellas: number; total: number }[]
+  }
+  tecnicosActivos: {
+    porcentajeVerificadosConServicio30Dias: number
+    top5: { id: number; nombre: string; total: number }[]
+  }
+}
+
 export interface CancelacionSemana {
   semanaInicio: string
   total: number
@@ -300,6 +337,8 @@ export interface MetricasDashboard {
     vsMesPasadoPorcentaje: number | null
   }
   colaRevision: { tecnicos: ColaRevisionItem[] }
+  /** Bloque de métricas de marketplace; solo en backends con la amplicación de T15. */
+  marketplace?: MetricasMarketplace
 }
 
 export interface ParametrosMetricas {
@@ -589,6 +628,72 @@ interface ResumenMonetizacionResponse {
 export async function obtenerResumenMonetizacion(): Promise<ResumenMonetizacion> {
   const { data } = await api.get<ResumenMonetizacionResponse>(
     '/admin/monetizacion/resumen',
+  )
+  return data.data
+}
+
+/* ------------------------------------------------------------------ */
+/* Métricas de monetización (series semanales)                         */
+/* ------------------------------------------------------------------ */
+
+export interface ModeloSemana {
+  semanaInicio: string
+  creditos: number
+  mensualidad: number
+}
+
+export interface IngresosSemana {
+  semanaInicio: string
+  ingresosCreditosSemana: number
+  ingresosMensualidadSemana: number
+  ingresosComisionesSemana: number
+  ingresosTotalSemana: number
+}
+
+export interface AdopcionSemana {
+  semanaInicio: string
+  verificadosSemana: number
+  conModeloActivoSemana: number
+}
+
+export interface MetricasMonetizacion {
+  generadoEn: string
+  modelosActivos: {
+    totales: { creditos: number; mensualidad: number; ninguno: number }
+    serie: ModeloSemana[]
+  }
+  ingresos: { serie: IngresosSemana[] }
+  adopcion: { serie: AdopcionSemana[] }
+  resumen: {
+    totalConCreditos: number
+    totalConMensualidad: number
+    totalSinModelo: number
+    ingresosTotalesCreditos: number
+    ingresosTotalesMensualidad: number
+    ingresosTotalesComisiones: number
+    ingresosTotales: number
+    modeloMasElegido: 'creditos' | 'mensualidad' | null
+    porcentajeMonetizados: number
+  }
+}
+
+interface MetricasMonetizacionResponse {
+  data: MetricasMonetizacion
+}
+
+export interface ParametrosMetricasMonetizacion {
+  semanas?: number
+}
+
+export async function obtenerMetricasMonetizacion(
+  parametros: ParametrosMetricasMonetizacion = {},
+): Promise<MetricasMonetizacion> {
+  const params: Record<string, number> = {}
+  if (parametros.semanas) params.semanas = parametros.semanas
+
+  const { data } = await api.get<MetricasMonetizacionResponse>(
+    '/admin/metricas/monetizacion',
+    { params },
   )
   return data.data
 }

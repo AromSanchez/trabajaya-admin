@@ -4,6 +4,7 @@ import type { ComponentType } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useDashboard } from '../../hooks/useDashboard'
 import type { MetricasDashboard } from '../../services/admin'
+import { SeccionMetricas } from './Metricas'
 import { ESTADOS_INFO } from '../../components/estados'
 import { etiquetaCategoria } from '../../components/reportes'
 import { obtenerIniciales } from '../../components/navigation'
@@ -637,7 +638,14 @@ function BloqueError({ error, onReintentar }: { error: string; onReintentar: () 
 
 export default function Dashboard() {
   const { usuario } = useAuth()
-  const { metricas, cargando, error, recargar } = useDashboard()
+  const {
+    metricas,
+    monetizacion,
+    cargando,
+    error,
+    errorMonetizacion,
+    recargar,
+  } = useDashboard()
 
   const encabezado = (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -866,6 +874,14 @@ export default function Dashboard() {
         <ColaRevision metricas={metricas} />
         <TiempoVerificacion metricas={metricas} />
       </section>
+
+      {/* Métricas de evolución: técnicos, servicios/clientes y monetización */}
+      <SeccionMetricas
+        metricas={metricas}
+        monetizacion={monetizacion}
+        errorMonetizacion={errorMonetizacion}
+        onReintentarMonetizacion={recargar}
+      />
     </div>
   )
 }
