@@ -41,6 +41,17 @@ import {
 import { format, differenceInCalendarDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts'
+
 const LABELS_ORDEN = [
   { valor: 'recientes', label: 'Más recientes' },
   { valor: 'creditos', label: 'Más créditos' },
@@ -839,123 +850,220 @@ export default function Monetizacion() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <div className="overflow-hidden rounded-lg border border-line">
-                <div className="border-b border-line px-4 py-3">
-                  <h3 className="text-sm font-semibold text-ink">
-                    Modelos activos por semana
-                  </h3>
-                </div>
 
-                {metricas.modelosActivos.serie.length === 0 ? (
-                  <p className="p-4 text-sm text-ink-3">No hay datos semanales.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-line text-xs text-ink-3">
-                          <th className="px-4 py-2 font-medium">Semana</th>
-                          <th className="px-4 py-2 text-right font-medium">Créditos</th>
-                          <th className="px-4 py-2 text-right font-medium">Mensualidad</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
-                        {metricas.modelosActivos.serie.map((semana) => (
-                          <tr key={semana.semanaInicio}>
-                            <td className="px-4 py-3 text-ink-2">
-                              {formatDate(semana.semanaInicio)}
-                            </td>
-                            <td className="px-4 py-3 text-right tabular-nums">
-                              {semana.creditos}
-                            </td>
-                            <td className="px-4 py-3 text-right tabular-nums">
-                              {semana.mensualidad}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="overflow-hidden rounded-lg border border-line">
+                  <div className="border-b border-line px-4 py-3">
+                    <h3 className="text-sm font-semibold text-ink">
+                      Modelos activos por semana
+                    </h3>
                   </div>
-                )}
+
+                  {metricas.modelosActivos.serie.length === 0 ? (
+                    <p className="p-4 text-sm text-ink-3">
+                      No hay datos semanales.
+                    </p>
+                  ) : (
+                    <div className="h-72 w-full p-3">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={metricas.modelosActivos.serie}
+                          margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                          />
+
+                          <XAxis
+                            dataKey="semanaInicio"
+                            tickFormatter={(value) =>
+                              new Date(`${value}T12:00:00`).toLocaleDateString(
+                                'es-PE',
+                                { day: '2-digit', month: 'short' }
+                              )
+                            }
+                            tick={{ fontSize: 12 }}
+                          />
+
+                          <YAxis
+                            allowDecimals={false}
+                            tick={{ fontSize: 12 }}
+                          />
+
+                          <Tooltip
+                            labelFormatter={(value) =>
+                              new Date(`${value}T12:00:00`).toLocaleDateString(
+                                'es-PE',
+                                {
+                                  day: '2-digit',
+                                  month: 'long',
+                                  year: 'numeric',
+                                }
+                              )
+                            }
+                          />
+
+                          <Legend />
+
+                          <Line
+                            type="monotone"
+                            dataKey="creditos"
+                            name="Créditos"
+                            stroke="#6366f1"
+                            strokeWidth={3}
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 6 }}
+                          />
+
+                          <Line
+                            type="monotone"
+                            dataKey="mensualidad"
+                            name="Mensualidad"
+                            stroke="#10b981"
+                            strokeWidth={3}
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="overflow-hidden rounded-lg border border-line">
-                <div className="border-b border-line px-4 py-3">
-                  <h3 className="text-sm font-semibold text-ink">
-                    Ingresos por semana
-                  </h3>
-                </div>
 
-                {metricas.ingresos.serie.length === 0 ? (
-                  <p className="p-4 text-sm text-ink-3">No hay datos semanales.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-line text-xs text-ink-3">
-                          <th className="px-4 py-2 font-medium">Semana</th>
-                          <th className="px-4 py-2 text-right font-medium">Ingresos</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
-                        {metricas.ingresos.serie.map((semana) => (
-                          <tr key={semana.semanaInicio}>
-                            <td className="px-4 py-3 text-ink-2">
-                              {formatDate(semana.semanaInicio)}
-                            </td>
-                            <td className="px-4 py-3 text-right font-medium tabular-nums">
-                              {formatMoney(semana.ingresosTotalSemana)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+              <div className="h-72 w-full p-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={metricas.ingresos.serie}
+                    margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="semanaInicio"
+                      tickFormatter={(value) =>
+                        new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
+                          day: '2-digit',
+                          month: 'short',
+                        })
+                      }
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `S/ ${value}`}
+                      width={75}
+                    />
+                    <Tooltip
+                      labelFormatter={(value) =>
+                        new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                      }
+                      formatter={(value) =>
+                        `S/ ${Number(value ?? 0).toLocaleString('es-PE', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
+                      }
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosCreditosSemana"
+                      name="Créditos"
+                      stroke="#6366f1"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosMensualidadSemana"
+                      name="Mensualidades"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosComisionesSemana"
+                      name="Comisiones"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosTotalSemana"
+                      name="Total"
+                      stroke="#ef4444"
+                      strokeWidth={3}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
+
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-line">
-              <div className="border-b border-line px-4 py-3">
-                <h3 className="text-sm font-semibold text-ink">
-                  Adopción de monetización por semana
-                </h3>
-              </div>
 
-              {metricas.adopcion.serie.length === 0 ? (
-                <p className="p-4 text-sm text-ink-3">No hay datos de adopción.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-line text-xs text-ink-3">
-                        <th className="px-4 py-2 font-medium">Semana</th>
-                        <th className="px-4 py-2 text-right font-medium">
-                          Técnicos verificados
-                        </th>
-                        <th className="px-4 py-2 text-right font-medium">
-                          Con modelo activo
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                      {metricas.adopcion.serie.map((semana) => (
-                        <tr key={semana.semanaInicio}>
-                          <td className="px-4 py-3 text-ink-2">
-                            {formatDate(semana.semanaInicio)}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums">
-                            {semana.verificadosSemana}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums">
-                            {semana.conModeloActivoSemana}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+            <div className="h-72 w-full p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={metricas.adopcion.serie}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="semanaInicio"
+                    tickFormatter={(value) =>
+                      new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
+                        day: '2-digit',
+                        month: 'short',
+                      })
+                    }
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    labelFormatter={(value) =>
+                      new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    }
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="verificadosSemana"
+                    name="Técnicos verificados"
+                    stroke="#6366f1"
+                    strokeWidth={3}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="conModeloActivoSemana"
+                    name="Con modelo activo"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
+
           </>
         )}
       </section>
