@@ -466,20 +466,12 @@ function SubseccionTecnicos({
   const serieMensual = metricas.seriesMensuales?.serie
   const usarMensual = mensual && !!serieMensual
 
-  const serieRegistros = (usarMensual
-    ? serieMensual!
-    : metricas.registrosVerificaciones.serie) as unknown as Array<Record<string, unknown>>
   const serieCancela = (usarMensual
     ? serieMensual!
     : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
 
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
-  const hayRegistros = serieRegistros.some((punto) =>
-    aNumero(punto.registros) > 0 ||
-    aNumero(punto.registrosNuevos) > 0 ||
-    aNumero(punto.verificados) > 0,
-  )
   const hayCancela = serieCancela.some(
     (punto) =>
       aNumero(punto.cancelacionesTardias) > 0 || aNumero(punto.total) > 0,
@@ -490,67 +482,17 @@ function SubseccionTecnicos({
       <div className="grid gap-4 xl:grid-cols-3">
       <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
         <h4 className="font-display text-base font-semibold text-ink">
-          Registros vs verificaciones
-        </h4>
-        <p className="mt-0.5 text-sm text-ink-2">
-          {usarMensual
-            ? `Por mes · últimos ${metricas.seriesMensuales?.meses ?? 0} meses`
-            : `Por semana · últimas ${metricas.registrosVerificaciones.semanas} semanas`}
-        </p>
-        <div className="mt-4">
-          {hayRegistros ? (
-            <GraficoLineas
-              datos={serieRegistros.map((punto) => ({
-                semana: usarMensual
-                  ? aTexto(punto.mes)
-                  : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
-                registros: usarMensual
-                  ? aNumero(punto.registros)
-                  : aNumero(punto.registrosNuevos),
-                verificados: aNumero(punto.verificados),
-              }))}
-              etiquetasTooltip={{
-                registros: '{v} registros',
-                verificados: '{v} verificados',
-              }}
-              series={[
-                {
-                  clave: 'registros',
-                  nombre: 'Registrados',
-                  colorVar: 'var(--color-chart-1)',
-                },
-                {
-                  clave: 'verificados',
-                  nombre: 'Verificados',
-                  colorVar: 'var(--color-chart-4)',
-                },
-              ]}
-            />
-          ) : (
-            <EstadoVacio mensaje="Aún no hay técnicos registrados en el periodo." />
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-        <h4 className="font-display text-base font-semibold text-ink">
           Cancelaciones tardías
         </h4>
         <p className="mt-0.5 text-sm text-ink-2">
-          {usarMensual
-            ? `Por mes · últimos ${metricas.seriesMensuales?.meses ?? 0} meses`
-            : `Por semana · últimas ${metricas.cancelacionesTardiasSemanales.semanas} semanas`}
+          Por semana · últimas 8 semanas
         </p>
         <div className="mt-4">
           {hayCancela ? (
             <GraficoLineas
               datos={serieCancela.map((punto) => ({
-                semana: usarMensual
-                  ? aTexto(punto.mes)
-                  : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
-                tardias: usarMensual
-                  ? aNumero(punto.cancelacionesTardias)
-                  : aNumero(punto.total),
+                semana: formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
+                tardias: aNumero(punto.total),
               }))}
               etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
               series={[
@@ -604,19 +546,6 @@ function SubseccionTecnicos({
         </div>
       </section>
       </div>
-      {serieRegistros.length >= 2 && (
-        <div className="mt-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <h4 className="font-display text-base font-semibold text-ink">Comparación vs mes anterior</h4>
-          <p className="mt-0.5 text-sm text-ink-2">
-            {aTexto(serieRegistros[serieRegistros.length - 2].mes)} - {aTexto(serieRegistros[serieRegistros.length - 1].mes)}
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <DeltaMes etiqueta="Registrados" actual={aNumero(serieRegistros[serieRegistros.length - 1].registros)} anterior={aNumero(serieRegistros[serieRegistros.length - 2].registros)} />
-            <DeltaMes etiqueta="Verificados" actual={aNumero(serieRegistros[serieRegistros.length - 1].verificados)} anterior={aNumero(serieRegistros[serieRegistros.length - 2].verificados)} />
-            <DeltaMes etiqueta="Cancelaciones tardías" actual={aNumero(serieCancela[serieCancela.length - 1].cancelacionesTardias)} anterior={aNumero(serieCancela[serieCancela.length - 2].cancelacionesTardias)} invertir />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -660,9 +589,7 @@ function SubseccionServicios({
             Servicios completados
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            {usarMensual
-              ? `Por mes · últimos ${seriesMensuales?.meses ?? 0} meses`
-              : `Por semana · últimas ${servicios.evolucionCompletadasSemanal.semanas} semanas`}
+            Por semana · últimas 8 semanas
           </p>
           <div className="mt-4">
             {hayCompletadas ? (
@@ -793,9 +720,7 @@ export function SubseccionMonetizacion({
             Ingresos por semana
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            {usarMensual
-              ? `Por mes · últimos ${monetizacion.ingresosMensuales?.meses ?? 0} meses`
-              : 'Recargas de créditos · plan mensual · comisiones'}
+            Recargas de créditos · plan mensual · comisiones
           </p>
           <div className="mt-4">
             {hayIngresos ? (
@@ -848,9 +773,7 @@ export function SubseccionMonetizacion({
             Técnicos por modelo
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            {usarMensual
-              ? `Por mes · últimos ${monetizacion.modelosMensuales?.meses ?? 0} meses`
-              : `Créditos vs mensualidad · últimas ${serieModelos.length} semanas`}
+            Créditos vs mensualidad · últimas 8 semanas
           </p>
           <div className="mt-4">
             {hayModelos ? (
