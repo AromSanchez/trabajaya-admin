@@ -47,6 +47,14 @@ function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
+function aNumero(valor: unknown): number {
+  return typeof valor === 'number' ? valor : 0
+}
+
+function aTexto(valor: unknown): string {
+  return typeof valor === 'string' ? valor : ''
+}
+
 /* ------------------------------------------------------------------ */
 /* Tipos de datos internos                                             */
 /* ------------------------------------------------------------------ */
@@ -420,21 +428,22 @@ function SubseccionTecnicos({
 
   const serieRegistros = (usarMensual
     ? serieMensual!
-    : metricas.registrosVerificaciones.serie) as any[]
+    : metricas.registrosVerificaciones.serie) as unknown as Array<Record<string, unknown>>
   const serieCancela = (usarMensual
     ? serieMensual!
-    : metricas.cancelacionesTardiasSemanales.serie) as any[]
+    : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
 
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
-  const hayRegistros = usarMensual
-    ? serieRegistros.some((punto) => punto.registros > 0 || punto.verificados > 0)
-    : serieRegistros.some(
-        (punto) => punto.registrosNuevos > 0 || punto.verificados > 0,
-      )
-  const hayCancela = usarMensual
-    ? serieCancela.some((punto) => punto.cancelacionesTardias > 0)
-    : serieCancela.some((punto) => punto.total > 0)
+  const hayRegistros = serieRegistros.some((punto) =>
+    aNumero(punto.registros) > 0 ||
+    aNumero(punto.registrosNuevos) > 0 ||
+    aNumero(punto.verificados) > 0,
+  )
+  const hayCancela = serieCancela.some(
+    (punto) =>
+      aNumero(punto.cancelacionesTardias) > 0 || aNumero(punto.total) > 0,
+  )
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
@@ -452,10 +461,12 @@ function SubseccionTecnicos({
             <GraficoLineas
               datos={serieRegistros.map((punto) => ({
                 semana: usarMensual
-                  ? String(punto.mes)
-                  : formatearSemana(punto.semanaInicio),
-                registros: usarMensual ? punto.registros : punto.registrosNuevos,
-                verificados: punto.verificados,
+                  ? aTexto(punto.mes)
+                  : formatearSemana(aTexto(punto.semanaInicio)),
+                registros: usarMensual
+                  ? aNumero(punto.registros)
+                  : aNumero(punto.registrosNuevos),
+                verificados: aNumero(punto.verificados),
               }))}
               etiquetasTooltip={{
                 registros: '{v} registros',
@@ -494,9 +505,11 @@ function SubseccionTecnicos({
             <GraficoLineas
               datos={serieCancela.map((punto) => ({
                 semana: usarMensual
-                  ? String(punto.mes)
-                  : formatearSemana(punto.semanaInicio),
-                tardias: usarMensual ? punto.cancelacionesTardias : punto.total,
+                  ? aTexto(punto.mes)
+                  : formatearSemana(aTexto(punto.semanaInicio)),
+                tardias: usarMensual
+                  ? aNumero(punto.cancelacionesTardias)
+                  : aNumero(punto.total),
               }))}
               etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
               series={[
@@ -570,7 +583,7 @@ function SubseccionServicios({
   const usarMensual = mensual && !!seriesMensuales?.serie
   const serieCompletadas = (usarMensual
     ? seriesMensuales!.serie
-    : servicios.evolucionCompletadasSemanal.serie) as any[]
+    : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
 
   const dona = servicios.porEstado.map((estado) => ({
     nombre: ESTADOS_SERVICIO_INFO[estado.estado]?.label ?? capitalizar(estado.estado),
@@ -579,7 +592,9 @@ function SubseccionServicios({
       ESTADOS_SERVICIO_INFO[estado.estado]?.colorVar ?? 'var(--color-pending)',
   }))
 
-  const hayCompletadas = serieCompletadas.some((punto) => punto.completadas > 0)
+  const hayCompletadas = serieCompletadas.some(
+    (punto) => aNumero(punto.completadas) > 0,
+  )
   const hayDona = servicios.porEstado.some((estado) => estado.total > 0)
 
   return (
@@ -599,9 +614,9 @@ function SubseccionServicios({
               <GraficoLineas
                 datos={serieCompletadas.map((punto) => ({
                   semana: usarMensual
-                    ? String(punto.mes)
-                    : formatearSemana(punto.semanaInicio),
-                  completadas: punto.completadas,
+                    ? aTexto(punto.mes)
+                    : formatearSemana(aTexto(punto.semanaInicio)),
+                  completadas: aNumero(punto.completadas),
                 }))}
                 etiquetasTooltip={{ completadas: '{v} completados' }}
                 series={[
@@ -665,7 +680,7 @@ function SubseccionServicios({
 /* Subsección 3 · Monetización                                         */
 /* ------------------------------------------------------------------ */
 
-function SubseccionMonetizacion({
+export function SubseccionMonetizacion({
   monetizacion,
   mensual,
 }: {
@@ -673,30 +688,30 @@ function SubseccionMonetizacion({
   mensual: boolean
 }) {
   const { modelosActivos, ingresos, resumen } = monetizacion
-  const usarMensual = mensual && !!monetizacion.mensuales
+  const usarMensual = mensual && !!monetizacion.ingresosMensuales
 
   const serieModelos = (usarMensual
-    ? monetizacion.mensuales!.modelosMensuales.serie
-    : modelosActivos.serie) as any[]
+    ? monetizacion.modelosMensuales!.serie
+    : modelosActivos.serie) as unknown as Array<Record<string, unknown>>
   const serieIngresos = (usarMensual
-    ? monetizacion.mensuales!.ingresosMensuales.serie
-    : ingresos.serie) as any[]
+    ? monetizacion.ingresosMensuales!.serie
+    : ingresos.serie) as unknown as Array<Record<string, unknown>>
 
   const hayModelos = serieModelos.some(
-    (punto) => punto.creditos > 0 || punto.mensualidad > 0,
+    (punto) => aNumero(punto.creditos) > 0 || aNumero(punto.mensualidad) > 0,
   )
   const hayIngresos = usarMensual
     ? serieIngresos.some(
         (punto) =>
-          punto.ingresosCreditosMes > 0 ||
-          punto.ingresosMensualidadMes > 0 ||
-          punto.ingresosComisionesMes > 0,
+          aNumero(punto.ingresosCreditosMes) > 0 ||
+          aNumero(punto.ingresosMensualidadMes) > 0 ||
+          aNumero(punto.ingresosComisionesMes) > 0,
       )
     : serieIngresos.some(
         (punto) =>
-          punto.ingresosCreditosSemana > 0 ||
-          punto.ingresosMensualidadSemana > 0 ||
-          punto.ingresosComisionesSemana > 0,
+          aNumero(punto.ingresosCreditosSemana) > 0 ||
+          aNumero(punto.ingresosMensualidadSemana) > 0 ||
+          aNumero(punto.ingresosComisionesSemana) > 0,
       )
 
   const totalMonetizados = resumen.totalConCreditos + resumen.totalConMensualidad
@@ -710,7 +725,7 @@ function SubseccionMonetizacion({
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
             {usarMensual
-              ? `Por mes · últimos ${monetizacion.mensuales?.ingresosMensuales.meses ?? 0} meses`
+              ? `Por mes · últimos ${monetizacion.ingresosMensuales?.meses ?? 0} meses`
               : 'Recargas de créditos · plan mensual · comisiones'}
           </p>
           <div className="mt-4">
@@ -718,17 +733,17 @@ function SubseccionMonetizacion({
               <GraficoLineas
                 datos={serieIngresos.map((punto) => ({
                   semana: usarMensual
-                    ? String(punto.mes)
-                    : formatearSemana(punto.semanaInicio),
+                    ? aTexto(punto.mes)
+                    : formatearSemana(aTexto(punto.semanaInicio)),
                   creditos: usarMensual
-                    ? punto.ingresosCreditosMes
-                    : punto.ingresosCreditosSemana,
+                    ? aNumero(punto.ingresosCreditosMes)
+                    : aNumero(punto.ingresosCreditosSemana),
                   mensualidad: usarMensual
-                    ? punto.ingresosMensualidadMes
-                    : punto.ingresosMensualidadSemana,
+                    ? aNumero(punto.ingresosMensualidadMes)
+                    : aNumero(punto.ingresosMensualidadSemana),
                   comisiones: usarMensual
-                    ? punto.ingresosComisionesMes
-                    : punto.ingresosComisionesSemana,
+                    ? aNumero(punto.ingresosComisionesMes)
+                    : aNumero(punto.ingresosComisionesSemana),
                 }))}
                 etiquetasTooltip={{
                   creditos: 'S/ {v} en créditos',
@@ -765,7 +780,7 @@ function SubseccionMonetizacion({
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
             {usarMensual
-              ? `Por mes · últimos ${monetizacion.mensuales?.modelosMensuales.meses ?? 0} meses`
+              ? `Por mes · últimos ${monetizacion.modelosMensuales?.meses ?? 0} meses`
               : `Créditos vs mensualidad · últimas ${serieModelos.length} semanas`}
           </p>
           <div className="mt-4">
@@ -773,10 +788,10 @@ function SubseccionMonetizacion({
               <GraficoLineas
                 datos={serieModelos.map((punto) => ({
                   semana: usarMensual
-                    ? String(punto.mes)
-                    : formatearSemana(punto.semanaInicio),
-                  creditos: punto.creditos,
-                  mensualidad: punto.mensualidad,
+                    ? aTexto(punto.mes)
+                    : formatearSemana(aTexto(punto.semanaInicio)),
+                  creditos: aNumero(punto.creditos),
+                  mensualidad: aNumero(punto.mensualidad),
                 }))}
                 etiquetasTooltip={{
                   creditos: '{v} con créditos',
@@ -841,7 +856,7 @@ function SubseccionMonetizacion({
 /* Fallback monetización                                               */
 /* ------------------------------------------------------------------ */
 
-function ErrorMonetizacion({
+export function ErrorMonetizacion({
   mensaje,
   onReintentar,
 }: {
@@ -879,28 +894,15 @@ function ErrorMonetizacion({
 
 export function SeccionMetricas({
   metricas,
-  monetizacion,
-  errorMonetizacion,
-  onReintentarMonetizacion,
-  meses,
-  onMesesChange,
+  mes,
+  onMesChange,
 }: {
   metricas: MetricasDashboard
-  monetizacion: MetricasMonetizacion | null
-  errorMonetizacion: string | null
-  onReintentarMonetizacion: () => void
-  meses: number | undefined
-  onMesesChange: (meses: number | undefined) => void
+  mes: string
+  onMesChange: (mes: string) => void
 }) {
   const marketplace = metricas.marketplace
-  const mensual = !!meses
-
-  const opcionesPeriodo: { label: string; valor: number | undefined }[] = [
-    { label: '1 mes', valor: undefined },
-    { label: '3 meses', valor: 3 },
-    { label: '6 meses', valor: 6 },
-    { label: '12 meses', valor: 12 },
-  ]
+  const mensual = true
 
   return (
     <section aria-labelledby="titulo-metricas" className="pt-3">
@@ -916,34 +918,20 @@ export function SeccionMetricas({
             Métricas
           </h2>
           <p className="text-sm text-ink-2">
-            Tendencias {mensual ? 'mensuales' : 'semanales'}, calidad y
-            monetización del marketplace.
+            Tendencias mensuales, calidad y monetización del marketplace.
           </p>
         </div>
-        <div
-          role="group"
-          aria-label="Periodo de comparación"
-          className="inline-flex rounded-lg border border-line bg-surface p-1"
-        >
-          {opcionesPeriodo.map((opcion) => {
-            const activo = meses === opcion.valor
-            return (
-              <button
-                key={opcion.label}
-                type="button"
-                onClick={() => onMesesChange(opcion.valor)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
-                  activo
-                    ? 'bg-primary-soft text-link'
-                    : 'text-ink-2 hover:text-ink'
-                }`}
-                aria-pressed={activo}
-              >
-                {opcion.label}
-              </button>
-            )
-          })}
-        </div>
+        <label className="inline-flex items-center gap-2 text-sm text-ink-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+            Mes
+          </span>
+          <input
+            type="month"
+            value={mes}
+            onChange={(evento) => onMesChange(evento.target.value)}
+            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </label>
       </header>
 
       <CabeceraSubseccion
@@ -972,26 +960,8 @@ export function SeccionMetricas({
         )}
       </div>
 
-      <CabeceraSubseccion
-        numero="3"
-        titulo="Métricas de monetización"
-        descripcion="Qué modelo eligen los técnicos y cuáles ingresan, semana a semana."
-      />
-      <div className="mt-4">
-        {monetizacion ? (
-          <SubseccionMonetizacion
-            monetizacion={monetizacion}
-            mensual={mensual}
-          />
-        ) : errorMonetizacion ? (
-          <ErrorMonetizacion
-            mensaje={errorMonetizacion}
-            onReintentar={onReintentarMonetizacion}
-          />
-        ) : (
-          <EstadoVacio mensaje="Cargando métricas de monetización…" />
-        )}
-      </div>
+      {/* Métricas de monetización: se implementarán en la página de Monetización. */}
+      {/* <CabeceraSubseccion ... /> */}
     </section>
   )
 }

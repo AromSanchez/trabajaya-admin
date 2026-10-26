@@ -371,6 +371,7 @@ export interface MetricasDashboard {
   marketplace?: MetricasMarketplace
   /** Series mensuales (solo si se pidió ?meses=N con N>=2). */
   seriesMensuales?: { meses: number; serie: RegistroMes[] }
+  periodo?: { seleccionado: string; anterior: string | null }
 }
 
 export interface ParametrosMetricas {
@@ -379,6 +380,7 @@ export interface ParametrosMetricas {
   diasReportes?: number
   limitCola?: number
   meses?: number
+  mes?: string
 }
 
 interface MetricasDashboardResponse {
@@ -388,7 +390,7 @@ interface MetricasDashboardResponse {
 export async function obtenerMetricasDashboard(
   parametros: ParametrosMetricas = {},
 ): Promise<MetricasDashboard> {
-  const params: Record<string, number> = {}
+  const params: Record<string, number | string> = {}
   if (parametros.semanasRegistros) {
     params.semanas_registros = parametros.semanasRegistros
   }
@@ -398,6 +400,7 @@ export async function obtenerMetricasDashboard(
   if (parametros.diasReportes) params.dias_reportes = parametros.diasReportes
   if (parametros.limitCola) params.limit_cola = parametros.limitCola
   if (parametros.meses) params.meses = parametros.meses
+  if (parametros.mes) params.mes = parametros.mes
 
   const { data } = await api.get<MetricasDashboardResponse>(
     '/admin/metricas/dashboard',
@@ -698,10 +701,9 @@ export interface MetricasMonetizacion {
   }
   ingresos: { serie: IngresosSemana[] }
   adopcion: { serie: AdopcionSemana[] }
-  mensuales?: {
-    ingresosMensuales: { meses: number; serie: IngresosMes[] }
-    modelosMensuales: { meses: number; serie: ModeloMes[] }
-  }
+  ingresosMensuales?: { meses: number; serie: IngresosMes[] }
+  modelosMensuales?: { meses: number; serie: ModeloMes[] }
+  periodo?: { seleccionado: string; anterior: string | null }
   resumen: {
     totalConCreditos: number
     totalConMensualidad: number
@@ -722,14 +724,16 @@ interface MetricasMonetizacionResponse {
 export interface ParametrosMetricasMonetizacion {
   semanas?: number
   meses?: number
+  mes?: string
 }
 
 export async function obtenerMetricasMonetizacion(
   parametros: ParametrosMetricasMonetizacion = {},
 ): Promise<MetricasMonetizacion> {
-  const params: Record<string, number> = {}
+  const params: Record<string, number | string> = {}
   if (parametros.semanas) params.semanas = parametros.semanas
   if (parametros.meses) params.meses = parametros.meses
+  if (parametros.mes) params.mes = parametros.mes
 
   const { data } = await api.get<MetricasMonetizacionResponse>(
     '/admin/metricas/monetizacion',

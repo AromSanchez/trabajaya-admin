@@ -638,15 +638,13 @@ function BloqueError({ error, onReintentar }: { error: string; onReintentar: () 
 
 export default function Dashboard() {
   const { usuario } = useAuth()
-  const [meses, setMeses] = useState<number | undefined>(undefined)
+  const [mes, setMes] = useState<string>(new Date().toISOString().slice(0, 7))
   const {
     metricas,
-    monetizacion,
     cargando,
     error,
-    errorMonetizacion,
     recargar,
-  } = useDashboard(meses)
+  } = useDashboard(mes)
 
   const encabezado = (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -879,11 +877,8 @@ export default function Dashboard() {
       {/* Métricas de evolución: técnicos, servicios/clientes y monetización */}
       <SeccionMetricas
         metricas={metricas}
-        monetizacion={monetizacion}
-        errorMonetizacion={errorMonetizacion}
-        onReintentarMonetizacion={recargar}
-        meses={meses}
-        onMesesChange={setMeses}
+        mes={mes}
+        onMesChange={setMes}
       />
     </div>
   )
