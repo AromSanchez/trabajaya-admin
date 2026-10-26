@@ -1,16 +1,18 @@
-import { useEffect, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import {
   listarTecnicosMonetizacion,
   listarTransaccionesMonetizacion,
   obtenerResumenMonetizacion,
+  obtenerMetricasMonetizacion,
   type FiltrosMonetizacionTecnicos,
   type FiltrosTransaccionesMonetizacion,
   type TecnicoMonetizacion,
   type TransaccionMonetizacion,
   type Paginacion,
   type ResumenMonetizacion,
-  type TipoMonetizacion,
+  type TipoFiltroMonetizacion,
   type TipoTransaccion,
+  type MetricasMonetizacion,
 } from '../../services/admin'
 import {
   OFICIOS_INFO,
@@ -59,7 +61,7 @@ interface TipoInfo {
   dot: string
 }
 
-const MODELO_INFO: Record<TipoMonetizacion, TipoInfo> = {
+const MODELO_INFO: Record<string, TipoInfo> = {
   creditos: {
     label: 'Créditos',
     badge: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
@@ -71,6 +73,14 @@ const MODELO_INFO: Record<TipoMonetizacion, TipoInfo> = {
     dot: 'bg-emerald-500',
   },
 }
+
+const FILTROS_MODELO: { valor: string; label: string }[] = [
+  { valor: 'todos', label: 'Todos' },
+  { valor: 'con_modelo', label: 'Con modelo (créditos o mensualidad)' },
+  { valor: 'creditos', label: 'Solo créditos' },
+  { valor: 'mensualidad', label: 'Solo mensualidad' },
+  { valor: 'sin_modelo', label: 'Sin modelo' },
+]
 
 const TRANSACCION_INFO: Record<TipoTransaccion, TipoInfo> = {
   compra_creditos: {
@@ -266,11 +276,61 @@ export default function Monetizacion() {
   const [pagTrans, setPagTrans] = useState<Paginacion | null>(null)
   const [cargandoTrans, setCargandoTrans] = useState(true)
 
-  const [tipoSel, setTipoSel] = useState<'todos' | TipoMonetizacion>('todos')
+  const [tipoSel, setTipoSel] = useState<'todos' | TipoFiltroMonetizacion>('todos')
   const [ordenSel, setOrdenSel] = useState<'recientes' | 'creditos' | 'vencimiento'>('recientes')
   const [paginaTecnicos, setPaginaTecnicos] = useState(1)
 
-  const [tecnicoIdTxt, setTecnicoIdTxt] = useState('')
+  /* ---- Transacciones: buscador de técnico con dropdown ---- */
+  const [tecnicoBusqueda, setTecnicoBusqueda] = useState('')
+  const [tecnicoSeleccionado, setTecnicoSeleccionado] = useState<{ id: number; nombre: string } | null>(null)
+  const [dropdownAbierto, setDropdownAbierto] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Lista de técnicos para el dropdown (se obtiene de la lista completa de técnicos monetizados)
+  const [listaTecnicos, setListaTecnicos] = useState<{ id: number; nombre: string; email: string }[]>([])
+  const [cargandoListaTecnicos, setCargandoListaTecnicos] = useState(false)
+
+  const tecnicosFiltrados = useMemo(() => {
+    if (!tecnicoBusqueda.trim()) return listaTecnicos.slice(0, 20)
+    const termino = tecnicoBusqueda.toLowerCase()
+    return listaTecnicos
+      .filter(
+        (t) =>
+          t.nombre.toLowerCase().includes(termino) ||
+          t.email.toLowerCase().includes(termino) ||
+          String(t.id).includes(termino),
+      )
+      .slice(0, 20)
+  }, [tecnicoBusqueda, listaTecnicos])
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    function handleClickFuera(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownAbierto(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickFuera)
+    return () => document.removeEventListener('mousedown', handleClickFuera)
+  }, [])
+
+  // Cargar lista de técnicos para el dropdown cuando se abre la pestaña transacciones
+  const cargarListaTecnicos = useCallback(async () => {
+    if (listaTecnicos.length > 0) return
+    setCargandoListaTecnicos(true)
+    try {
+      const { tecnicos: todos } = await listarTecnicosMonetizacion({
+        tipo: 'con_modelo',
+        limit: 100,
+      })
+      setListaTecnicos(todos.map((t) => ({ id: t.id, nombre: t.nombre, email: t.email })))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setCargandoListaTecnicos(false)
+    }
+  }, [listaTecnicos.length])
+
   const [tipoTxSel, setTipoTxSel] = useState<'todos' | TipoTransaccion>('todos')
   const [desdeTxt, setDesdeTxt] = useState('')
   const [hastaTxt, setHastaTxt] = useState('')
@@ -279,7 +339,11 @@ export default function Monetizacion() {
 
   const hayFiltrosTecnicos = tipoSel !== 'todos' || ordenSel !== 'recientes'
   const hayFiltrosTrans =
-    tecnicoIdTxt !== '' || tipoTxSel !== 'todos' || desdeTxt !== '' || hastaTxt !== ''
+    tecnicoSeleccionado !== null ||
+    tecnicoBusqueda.trim() !== '' ||
+    tipoTxSel !== 'todos' ||
+    desdeTxt !== '' ||
+    hastaTxt !== ''
 
   const cargarResumen = async () => {
     setCargandoResumen(true)
@@ -347,8 +411,8 @@ export default function Monetizacion() {
       setCargandoTrans(true)
       try {
         const filtros: FiltrosTransaccionesMonetizacion = {}
-        if (tecnicoIdTxt !== '' && !Number.isNaN(Number(tecnicoIdTxt))) {
-          filtros.tecnicoId = Number(tecnicoIdTxt)
+        if (tecnicoSeleccionado) {
+          filtros.tecnicoId = tecnicoSeleccionado.id
         }
         if (tipoTxSel !== 'todos') filtros.tipoTransaccion = tipoTxSel
         if (desdeTxt) filtros.desde = new Date(`${desdeTxt}T00:00:00`).toISOString()
@@ -371,7 +435,14 @@ export default function Monetizacion() {
     return () => {
       vigente = false
     }
-  }, [tab, tecnicoIdTxt, tipoTxSel, desdeTxt, hastaTxt, paginaTrans, reloadKey])
+  }, [tab,
+    tecnicoSeleccionado,
+    tipoTxSel,
+    desdeTxt,
+    hastaTxt,
+    paginaTrans,
+    reloadKey,]
+  )
 
   const recargarTodo = () => {
     cargarResumen()
@@ -442,11 +513,10 @@ export default function Monetizacion() {
           type="button"
           aria-selected={tab === 'tecnicos'}
           onClick={() => setTab('tecnicos')}
-          className={`rounded-md px-4 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
-            tab === 'tecnicos'
-              ? 'bg-primary-strong text-white shadow-sm'
-              : 'text-ink-2 hover:text-ink'
-          }`}
+          className={`rounded-md px-4 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${tab === 'tecnicos'
+            ? 'bg-primary-strong text-white shadow-sm'
+            : 'text-ink-2 hover:text-ink'
+            }`}
         >
           Técnicos
         </button>
@@ -455,11 +525,10 @@ export default function Monetizacion() {
           type="button"
           aria-selected={tab === 'transacciones'}
           onClick={() => setTab('transacciones')}
-          className={`rounded-md px-4 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${
-            tab === 'transacciones'
-              ? 'bg-primary-strong text-white shadow-sm'
-              : 'text-ink-2 hover:text-ink'
-          }`}
+          className={`rounded-md px-4 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${tab === 'transacciones'
+            ? 'bg-primary-strong text-white shadow-sm'
+            : 'text-ink-2 hover:text-ink'
+            }`}
         >
           Transacciones
         </button>
@@ -477,7 +546,7 @@ export default function Monetizacion() {
                 <Select
                   value={tipoSel}
                   onValueChange={(v) => {
-                    setTipoSel(v as 'todos' | TipoMonetizacion)
+                    setTipoSel(v as 'todos' | TipoFiltroMonetizacion)
                     setPaginaTecnicos(1)
                   }}
                 >
@@ -545,9 +614,8 @@ export default function Monetizacion() {
           {/* Tabla de técnicos */}
           <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
             <div
-              className={`relative overflow-x-auto transition-opacity duration-[var(--duration)] ${
-                cargandoTecnicos ? 'opacity-60' : 'opacity-100'
-              }`}
+              className={`relative overflow-x-auto transition-opacity duration-[var(--duration)] ${cargandoTecnicos ? 'opacity-60' : 'opacity-100'
+                }`}
             >
               <table className="w-full text-left text-sm">
                 <thead>
@@ -692,22 +760,87 @@ export default function Monetizacion() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label htmlFor="fx-tecnico" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
-                  ID técnico
+              <div ref={dropdownRef} className="relative">
+                <label
+                  htmlFor="fx-tecnico"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3"
+                >
+                  Técnico
                 </label>
-                <Input
-                  id="fx-tecnico"
-                  type="number"
-                  min={1}
-                  placeholder="Ej. 2"
-                  value={tecnicoIdTxt}
-                  onChange={(e) => {
-                    setTecnicoIdTxt(e.target.value)
-                    setPaginaTrans(1)
-                  }}
-                  className="h-10"
-                />
+
+                <div className="relative">
+                  <Input
+                    id="fx-tecnico"
+                    type="text"
+                    placeholder="Buscar por nombre, correo o ID..."
+                    value={tecnicoSeleccionado ? tecnicoSeleccionado.nombre : tecnicoBusqueda}
+                    onChange={(e) => {
+                      setTecnicoBusqueda(e.target.value)
+                      setTecnicoSeleccionado(null)
+                      setDropdownAbierto(true)
+                      setPaginaTrans(1)
+                    }}
+                    onFocus={() => {
+                      setDropdownAbierto(true)
+                      cargarListaTecnicos()
+                    }}
+                    className="h-10"
+                  />
+
+                  {tecnicoSeleccionado && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTecnicoSeleccionado(null)
+                        setTecnicoBusqueda('')
+                        setDropdownAbierto(false)
+                        setPaginaTrans(1)
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink"
+                      aria-label="Quitar técnico seleccionado"
+                    >
+                      <IconX />
+                    </button>
+                  )}
+                </div>
+
+                {dropdownAbierto && (
+                  <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-line bg-surface shadow-lg">
+                    {cargandoListaTecnicos ? (
+                      <p className="px-3 py-3 text-sm text-ink-3">
+                        Cargando técnicos...
+                      </p>
+                    ) : tecnicosFiltrados.length > 0 ? (
+                      tecnicosFiltrados.map((tecnico) => (
+                        <button
+                          key={tecnico.id}
+                          type="button"
+                          onClick={() => {
+                            setTecnicoSeleccionado({
+                              id: tecnico.id,
+                              nombre: tecnico.nombre,
+                            })
+                            setTecnicoBusqueda('')
+                            setDropdownAbierto(false)
+                            setPaginaTrans(1)
+                          }}
+                          className="flex w-full flex-col px-3 py-2 text-left transition hover:bg-surface-2"
+                        >
+                          <span className="text-sm font-medium text-ink">
+                            {tecnico.nombre}
+                          </span>
+                          <span className="text-xs text-ink-3">
+                            ID: {tecnico.id} · {tecnico.email}
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-3 text-sm text-ink-3">
+                        No se encontraron técnicos.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label htmlFor="fx-desde" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
@@ -745,7 +878,9 @@ export default function Monetizacion() {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    setTecnicoIdTxt('')
+                    setTecnicoSeleccionado(null)
+                    setTecnicoBusqueda('')
+                    setDropdownAbierto(false)
                     setTipoTxSel('todos')
                     setDesdeTxt('')
                     setHastaTxt('')
@@ -772,9 +907,8 @@ export default function Monetizacion() {
           {/* Tabla de transacciones */}
           <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
             <div
-              className={`relative overflow-x-auto transition-opacity duration-[var(--duration)] ${
-                cargandoTrans ? 'opacity-60' : 'opacity-100'
-              }`}
+              className={`relative overflow-x-auto transition-opacity duration-[var(--duration)] ${cargandoTrans ? 'opacity-60' : 'opacity-100'
+                }`}
             >
               <table className="w-full text-left text-sm">
                 <thead>
@@ -836,11 +970,10 @@ export default function Monetizacion() {
                         <td className="hidden px-5 py-4 text-right sm:table-cell">
                           {tx.creditos !== null ? (
                             <span
-                              className={`font-semibold tabular-nums ${
-                                tx.creditos < 0
-                                  ? 'text-rose-700 dark:text-rose-300'
-                                  : 'text-ink'
-                              }`}
+                              className={`font-semibold tabular-nums ${tx.creditos < 0
+                                ? 'text-rose-700 dark:text-rose-300'
+                                : 'text-ink'
+                                }`}
                             >
                               {tx.creditos > 0 ? `+${tx.creditos}` : tx.creditos}
                             </span>

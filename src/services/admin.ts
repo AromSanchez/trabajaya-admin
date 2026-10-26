@@ -590,8 +590,14 @@ interface TecnicosMonetizacionResponse {
   }
 }
 
+export type TipoFiltroMonetizacion =
+  | 'creditos'
+  | 'mensualidad'
+  | 'con_modelo'
+  | 'sin_modelo'
+
 export interface FiltrosMonetizacionTecnicos {
-  tipo?: TipoMonetizacion
+  tipo?: TipoFiltroMonetizacion
   orden?: 'recientes' | 'creditos' | 'vencimiento'
   page?: number
   limit?: number
