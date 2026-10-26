@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { ComponentType } from 'react'
 import {
   Cell,
@@ -25,13 +24,11 @@ import {
 /* Utilidades                                                          */
 /* ------------------------------------------------------------------ */
 
-const formatoSemana = new Intl.DateTimeFormat('es-PE', {
-  day: 'numeric',
-  month: 'short',
-})
-
-function formatearSemana(iso: string): string {
-  return formatoSemana.format(new Date(iso)).replace('.', '')
+function formatearSemanaRango(isoInicio: string, isoFin: string): string {
+  const inicio = new Date(isoInicio)
+  const fin = new Date(isoFin)
+  const fmt = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short' })
+  return `${fmt.format(inicio)} - ${fmt.format(fin)}`
 }
 
 const formatoDinero = new Intl.NumberFormat('es-PE', {
@@ -174,7 +171,7 @@ function LeyendaLineas({ series }: { series: SerieDef[] }) {
 function GraficoLineas({
   datos,
   series,
-  alto = 230,
+  alto = 350,
   etiquetasTooltip,
 }: {
   datos: PuntoSerie[]
@@ -507,7 +504,7 @@ function SubseccionTecnicos({
               datos={serieRegistros.map((punto) => ({
                 semana: usarMensual
                   ? aTexto(punto.mes)
-                  : formatearSemana(aTexto(punto.semanaInicio)),
+                  : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
                 registros: usarMensual
                   ? aNumero(punto.registros)
                   : aNumero(punto.registrosNuevos),
@@ -551,7 +548,7 @@ function SubseccionTecnicos({
               datos={serieCancela.map((punto) => ({
                 semana: usarMensual
                   ? aTexto(punto.mes)
-                  : formatearSemana(aTexto(punto.semanaInicio)),
+                  : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
                 tardias: usarMensual
                   ? aNumero(punto.cancelacionesTardias)
                   : aNumero(punto.total),
@@ -679,7 +676,7 @@ function SubseccionServicios({
                 datos={serieCompletadas.map((punto) => ({
                   semana: usarMensual
                     ? aTexto(punto.mes)
-                    : formatearSemana(aTexto(punto.semanaInicio)),
+                    : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
                   completadas: aNumero(punto.completadas),
                 }))}
                 etiquetasTooltip={{ completadas: '{v} completados' }}
@@ -812,7 +809,7 @@ export function SubseccionMonetizacion({
                 datos={serieIngresos.map((punto) => ({
                   semana: usarMensual
                     ? aTexto(punto.mes)
-                    : formatearSemana(aTexto(punto.semanaInicio)),
+                    : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
                   creditos: usarMensual
                     ? aNumero(punto.ingresosCreditosMes)
                     : aNumero(punto.ingresosCreditosSemana),
@@ -867,7 +864,7 @@ export function SubseccionMonetizacion({
                 datos={serieModelos.map((punto) => ({
                   semana: usarMensual
                     ? aTexto(punto.mes)
-                    : formatearSemana(aTexto(punto.semanaInicio)),
+                    : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
                   creditos: aNumero(punto.creditos),
                   mensualidad: aNumero(punto.mensualidad),
                 }))}
@@ -981,8 +978,6 @@ export function SeccionMetricas({
 }) {
   const marketplace = metricas.marketplace
   const mensual = true
-  const [mostrarAnual, setMostrarAnual] = useState(false)
-  console.log('SeccionMetricas seriesMensuales', metricas.seriesMensuales?.meses)
 
   return (
     <section aria-labelledby="titulo-metricas" className="pt-3">
@@ -1041,9 +1036,6 @@ export function SeccionMetricas({
               )
             })}
           </select>
-          {metricas.seriesMensuales && (
-            <button type="button" onClick={() => setMostrarAnual(true)} className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink shadow-sm hover:bg-surface-2">Ver 12 meses</button>
-          )}
         </div>
       </header>
 
@@ -1076,32 +1068,6 @@ export function SeccionMetricas({
 
       {/* Métricas de monetización: se implementarán en la página de Monetización. */}
       {/* <CabeceraSubseccion ... /> */}
-      {mostrarAnual && metricas.seriesMensuales && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setMostrarAnual(false)}>
-          <div className="max-h-[85vh] w-full max-w-4xl overflow-auto rounded-xl border border-line bg-surface p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="font-display text-xl font-semibold text-ink">Evolucion de los ultimos 12 meses</h3>
-              <button type="button" onClick={() => setMostrarAnual(false)} className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-2">Cerrar</button>
-            </div>
-            <div className="mt-4">
-              <GraficoLineas
-                datos={metricas.seriesMensuales.serie.map((punto) => ({
-                  semana: String(punto.mes),
-                  registros: aNumero(punto.registros),
-                  verificados: aNumero(punto.verificados),
-                  completados: aNumero(punto.completados),
-                }))}
-                etiquetasTooltip={{ registros: "{v} registros", verificados: "{v} verificados", completados: "{v} completados" }}
-                series={[
-                  { clave: "registros", nombre: "Registrados", colorVar: "var(--color-chart-1)" },
-                  { clave: "verificados", nombre: "Verificados", colorVar: "var(--color-chart-4)" },
-                  { clave: "completados", nombre: "Completados", colorVar: "var(--color-chart-2)" },
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   )
 }
