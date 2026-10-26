@@ -43,6 +43,43 @@ function formatearDinero(valor: number): string {
   return formatoDinero.format(valor)
 }
 
+function DeltaMes({
+  etiqueta,
+  actual,
+  anterior,
+  invertir = false,
+  sufijo = '',
+}: {
+  etiqueta: string
+  actual: number
+  anterior: number
+  invertir?: boolean
+  sufijo?: string
+}) {
+  const cambio =
+    anterior === 0 ? (actual > 0 ? 100 : 0) : ((actual - anterior) / anterior) * 100
+  const favorable = invertir ? cambio <= 0 : cambio >= 0
+  const signo = cambio >= 0 ? '+' : ''
+  return (
+    <div className="rounded-lg bg-surface-2 px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+        {etiqueta}
+      </p>
+      <p className="mt-1 font-display text-xl font-semibold tabular-nums text-ink">
+        {actual}
+        {sufijo}
+      </p>
+      <p
+        className={`mt-1 text-xs font-semibold ${
+          favorable ? 'text-success-text' : 'text-danger-text'
+        }`}
+      >
+        {cambio === 0 ? 'sin cambio' : `${signo}${cambio.toFixed(1)}% vs mes anterior`}
+      </p>
+    </div>
+  )
+}
+
 function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
@@ -394,10 +431,10 @@ function CabeceraSubseccion({
           {titulo}
         </h3>
         <p className="mt-0.5 text-sm text-ink-2">{descripcion}</p>
-      </div>
-    </header>
-  )
-}
+       </div>
+     </header>
+   )
+ }
 
 /* ------------------------------------------------------------------ */
 /* Estados de servicio (labels y tokens de color)                      */
@@ -562,6 +599,19 @@ function SubseccionTecnicos({
           )}
         </div>
       </section>
+      {serieRegistros.length >= 2 && (
+        <div className="mt-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">Comparaci�n vs mes anterior</h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            {aTexto(serieRegistros[serieRegistros.length - 2].mes)} - {aTexto(serieRegistros[serieRegistros.length - 1].mes)}
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <DeltaMes etiqueta="Registrados" actual={aNumero(serieRegistros[serieRegistros.length - 1].registros)} anterior={aNumero(serieRegistros[serieRegistros.length - 2].registros)} />
+            <DeltaMes etiqueta="Verificados" actual={aNumero(serieRegistros[serieRegistros.length - 1].verificados)} anterior={aNumero(serieRegistros[serieRegistros.length - 2].verificados)} />
+            <DeltaMes etiqueta="Cancelaciones tard�as" actual={aNumero(serieCancela[serieCancela.length - 1].cancelacionesTardias)} anterior={aNumero(serieCancela[serieCancela.length - 2].cancelacionesTardias)} invertir />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -672,6 +722,20 @@ function SubseccionServicios({
           icono={IconFlag}
         />
       </div>
+      {serieCompletadas.length >= 2 && (
+        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+          <h4 className="font-display text-base font-semibold text-ink">Comparaci�n vs mes anterior</h4>
+          <p className="mt-0.5 text-sm text-ink-2">
+            {aTexto(serieCompletadas[serieCompletadas.length - 2].mes)} - {aTexto(serieCompletadas[serieCompletadas.length - 1].mes)}
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <DeltaMes etiqueta="Solicitudes" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].servicios)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].servicios)} />
+            <DeltaMes etiqueta="Completados" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].completados)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].completados)} />
+            <DeltaMes etiqueta="Conversi�n" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].tasaConversion)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].tasaConversion)} sufijo=" pts" />
+            <DeltaMes etiqueta="Rese�as" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].resenas)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].resenas)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
