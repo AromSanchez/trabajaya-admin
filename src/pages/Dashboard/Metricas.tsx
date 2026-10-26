@@ -483,7 +483,8 @@ function SubseccionTecnicos({
   )
 
   return (
-    <div className="grid gap-4 xl:grid-cols-3">
+    <div className="space-y-4">
+      <div className="grid gap-4 xl:grid-cols-3">
       <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
         <h4 className="font-display text-base font-semibold text-ink">
           Registros vs verificaciones
@@ -599,16 +600,17 @@ function SubseccionTecnicos({
           )}
         </div>
       </section>
+      </div>
       {serieRegistros.length >= 2 && (
         <div className="mt-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <h4 className="font-display text-base font-semibold text-ink">Comparaci�n vs mes anterior</h4>
+          <h4 className="font-display text-base font-semibold text-ink">Comparación vs mes anterior</h4>
           <p className="mt-0.5 text-sm text-ink-2">
             {aTexto(serieRegistros[serieRegistros.length - 2].mes)} - {aTexto(serieRegistros[serieRegistros.length - 1].mes)}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <DeltaMes etiqueta="Registrados" actual={aNumero(serieRegistros[serieRegistros.length - 1].registros)} anterior={aNumero(serieRegistros[serieRegistros.length - 2].registros)} />
             <DeltaMes etiqueta="Verificados" actual={aNumero(serieRegistros[serieRegistros.length - 1].verificados)} anterior={aNumero(serieRegistros[serieRegistros.length - 2].verificados)} />
-            <DeltaMes etiqueta="Cancelaciones tard�as" actual={aNumero(serieCancela[serieCancela.length - 1].cancelacionesTardias)} anterior={aNumero(serieCancela[serieCancela.length - 2].cancelacionesTardias)} invertir />
+            <DeltaMes etiqueta="Cancelaciones tardías" actual={aNumero(serieCancela[serieCancela.length - 1].cancelacionesTardias)} anterior={aNumero(serieCancela[serieCancela.length - 2].cancelacionesTardias)} invertir />
           </div>
         </div>
       )}
@@ -724,15 +726,15 @@ function SubseccionServicios({
       </div>
       {serieCompletadas.length >= 2 && (
         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <h4 className="font-display text-base font-semibold text-ink">Comparaci�n vs mes anterior</h4>
+          <h4 className="font-display text-base font-semibold text-ink">Comparación vs mes anterior</h4>
           <p className="mt-0.5 text-sm text-ink-2">
             {aTexto(serieCompletadas[serieCompletadas.length - 2].mes)} - {aTexto(serieCompletadas[serieCompletadas.length - 1].mes)}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <DeltaMes etiqueta="Solicitudes" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].servicios)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].servicios)} />
             <DeltaMes etiqueta="Completados" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].completados)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].completados)} />
-            <DeltaMes etiqueta="Conversi�n" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].tasaConversion)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].tasaConversion)} sufijo=" pts" />
-            <DeltaMes etiqueta="Rese�as" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].resenas)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].resenas)} />
+            <DeltaMes etiqueta="Conversión" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].tasaConversion)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].tasaConversion)} sufijo=" pts" />
+            <DeltaMes etiqueta="Reseñas" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].resenas)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].resenas)} />
           </div>
         </div>
       )}
@@ -985,17 +987,47 @@ export function SeccionMetricas({
             Tendencias mensuales, calidad y monetización del marketplace.
           </p>
         </div>
-        <label className="inline-flex items-center gap-2 text-sm text-ink-2">
+        <div className="inline-flex items-center gap-2 text-sm text-ink-2">
           <span className="text-xs font-semibold uppercase tracking-wider text-ink-3">
-            Mes
+            Periodo
           </span>
-          <input
-            type="month"
-            value={mes}
-            onChange={(evento) => onMesChange(evento.target.value)}
+          <select
+            value={mes.slice(0, 4)}
+            onChange={(evento) =>
+              onMesChange(`${evento.target.value}-${mes.slice(5, 7)}`)
+            }
             className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </label>
+          >
+            {Array.from({ length: 6 }, (_, indice) => {
+              const anio = new Date().getFullYear() - 3 + indice
+              return (
+                <option key={anio} value={String(anio)}>
+                  {anio}
+                </option>
+              )
+            })}
+          </select>
+          <select
+            value={mes.slice(5, 7)}
+            onChange={(evento) =>
+              onMesChange(`${mes.slice(0, 4)}-${evento.target.value}`)
+            }
+            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            {Array.from({ length: 12 }, (_, indice) => {
+              const valor = String(indice + 1).padStart(2, '0')
+              const etiqueta = new Date(2000, indice, 1).toLocaleDateString(
+                'es-PE',
+                { month: 'long' },
+              )
+              return (
+                <option key={valor} value={valor}>
+                  {etiqueta}
+                </option>
+              )
+            })}
+          </select>
+        </div>
       </header>
 
       <CabeceraSubseccion
