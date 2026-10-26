@@ -464,20 +464,14 @@ function SubseccionTecnicos({
   mensual: boolean
 }) {
   const serieMensual = metricas.seriesMensuales?.serie
-  const serieSemanal = metricas.semanalDelMes?.serie
-  const usarSemanal = !!serieSemanal
-  const usarMensual = !usarSemanal && mensual && !!serieMensual
+  const usarMensual = mensual && !!serieMensual
 
-  const serieRegistros = (usarSemanal
-    ? serieSemanal!
-    : usarMensual
-      ? serieMensual!
-      : metricas.registrosVerificaciones.serie) as unknown as Array<Record<string, unknown>>
-  const serieCancela = (usarSemanal
-    ? serieSemanal!
-    : usarMensual
-      ? serieMensual!
-      : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
+  const serieRegistros = (usarMensual
+    ? serieMensual!
+    : metricas.registrosVerificaciones.serie) as unknown as Array<Record<string, unknown>>
+  const serieCancela = (usarMensual
+    ? serieMensual!
+    : metricas.cancelacionesTardiasSemanales.serie) as unknown as Array<Record<string, unknown>>
 
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
@@ -635,21 +629,16 @@ function SubseccionServicios({
   marketplace,
   mensual,
   seriesMensuales,
-  semanalDelMes,
 }: {
   marketplace: NonNullable<MetricasDashboard['marketplace']>
   mensual: boolean
   seriesMensuales?: MetricasDashboard['seriesMensuales']
-  semanalDelMes?: MetricasDashboard['semanalDelMes']
 }) {
   const { servicios, clientes, calidad } = marketplace
-  const usarSemanal = !!semanalDelMes?.serie
-  const usarMensual = !usarSemanal && mensual && !!seriesMensuales?.serie
-  const serieCompletadas = (usarSemanal
-    ? semanalDelMes!.serie
-    : usarMensual
-      ? seriesMensuales!.serie
-      : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
+  const usarMensual = mensual && !!seriesMensuales?.serie
+  const serieCompletadas = (usarMensual
+    ? seriesMensuales!.serie
+    : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
 
   const dona = servicios.porEstado.map((estado) => ({
     nombre: ESTADOS_SERVICIO_INFO[estado.estado]?.label ?? capitalizar(estado.estado),
@@ -1064,7 +1053,6 @@ export function SeccionMetricas({
             marketplace={marketplace}
             mensual={mensual}
             seriesMensuales={metricas.seriesMensuales}
-            semanalDelMes={metricas.semanalDelMes}
           />
         ) : (
           <EstadoVacio mensaje="Las métricas de servicios no están disponibles en esta versión del backend. Actualiza el backend para habilitar el bloque de marketplace." />

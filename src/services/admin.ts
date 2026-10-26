@@ -387,7 +387,6 @@ export interface MetricasDashboard {
   marketplace?: MetricasMarketplace
   /** Series mensuales (solo si se pidió ?meses=N con N>=2). */
   seriesMensuales?: { meses: number; serie: RegistroMes[] }
-  semanalDelMes?: { semanas: number; serie: SemanaDelMes[] }
   periodo?: { seleccionado: string; anterior: string | null }
 }
 
@@ -720,11 +719,6 @@ export interface MetricasMonetizacion {
   adopcion: { serie: AdopcionSemana[] }
   ingresosMensuales?: { meses: number; serie: IngresosMes[] }
   modelosMensuales?: { meses: number; serie: ModeloMes[] }
-  semanalDelMes?: {
-    semanas: number
-    ingresos: { serie: IngresosSemana[] }
-    modelos: { serie: ModeloSemana[] }
-  }
   periodo?: { seleccionado: string; anterior: string | null }
   resumen: {
     totalConCreditos: number
