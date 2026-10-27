@@ -29,6 +29,14 @@ import type { Oficio } from '../../services/admin'
 import { obtenerIniciales } from '../../components/navigation'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
+import { SelectorRangoMeses } from '../../components/SelectorRangoMeses'
+import {
+  diferenciaMeses,
+  mesActualISO,
+  nombreMesCorto,
+  rangoTexto,
+  restarMeses,
+} from '../../lib/periodo'
 import {
   Select,
   SelectContent,
@@ -156,13 +164,6 @@ const formatoFechaCorta = new Intl.DateTimeFormat('es-PE', {
   timeZone: 'UTC',
 })
 
-const formatoFechaLarga = new Intl.DateTimeFormat('es-PE', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'UTC',
-})
-
 function aFechaSegura(valor: unknown): Date | null {
   if (typeof valor !== 'string' || valor === '') return null
   const fecha = new Date(valor)
@@ -172,11 +173,6 @@ function aFechaSegura(valor: unknown): Date | null {
 function formatearFechaSerie(valor: unknown): string {
   const fecha = aFechaSegura(valor)
   return fecha ? formatoFechaCorta.format(fecha).replace('.', '') : '—'
-}
-
-function formatearFechaSerieLarga(valor: unknown): string {
-  const fecha = aFechaSegura(valor)
-  return fecha ? formatoFechaLarga.format(fecha) : '—'
 }
 
 function InfoTipo({ info }: { info: TipoInfo }) {
@@ -460,11 +456,20 @@ export default function Monetizacion() {
   const [paginaTrans, setPaginaTrans] = useState(1)
   const [reloadKey, setReloadKey] = useState(0)
 
+  const [mesInicio, setMesInicio] = useState<string>(restarMeses(mesActualISO(), 2))
+  const [mesFin, setMesFin] = useState<string>(mesActualISO())
+  const actualizarRango = useCallback((inicio: string, fin: string) => {
+    setMesInicio(inicio)
+    setMesFin(fin)
+  }, [])
+
   const cargarMetricas = useCallback(async () => {
     try {
+      const meses = Math.min(diferenciaMeses(mesInicio, mesFin) + 1, 12)
       const resultado = await obtenerMetricasMonetizacion({
         semanas: 8,
-        meses: 6,
+        mes: mesFin,
+        meses,
       })
 
       setMetricas(resultado)
@@ -473,7 +478,7 @@ export default function Monetizacion() {
     } finally {
       setCargandoMetricas(false)
     }
-  }, [])
+  }, [mesInicio, mesFin])
 
   useEffect(() => {
     const temporizador = window.setTimeout(() => {
@@ -521,6 +526,58 @@ export default function Monetizacion() {
       vigente = false
     }
   }, [])
+
+  // Series de métricas normalizadas al periodo seleccionado.
+  // 1 mes → granularidad semanal; rango multi-mes → granularidad mensual.
+  const spanMonetizacion = Math.min(diferenciaMeses(mesInicio, mesFin), 12)
+  const monetizacionMensual =
+    !!metricas &&
+    spanMonetizacion > 1 &&
+    !!metricas.ingresosMensuales &&
+    !!metricas.modelosMensuales
+
+  const serieIngresosPeriodo = metricas
+    ? monetizacionMensual
+      ? metricas.ingresosMensuales!.serie.slice(-spanMonetizacion).map((p) => ({
+          etiqueta: nombreMesCorto(p.mes),
+          creditos: p.ingresosCreditosMes,
+          mensualidad: p.ingresosMensualidadMes,
+          comisiones: p.ingresosComisionesMes,
+          total: p.ingresosTotalMes,
+        }))
+      : metricas.ingresos.serie.map((p) => ({
+          etiqueta: formatearFechaSerie(p.semanaInicio),
+          creditos: p.ingresosCreditosSemana,
+          mensualidad: p.ingresosMensualidadSemana,
+          comisiones: p.ingresosComisionesSemana,
+          total: p.ingresosTotalSemana,
+        }))
+    : []
+
+  const serieModelosPeriodo = metricas
+    ? monetizacionMensual
+      ? metricas.modelosMensuales!.serie.slice(-spanMonetizacion).map((p) => ({
+          etiqueta: nombreMesCorto(p.mes),
+          creditos: p.creditos,
+          mensualidad: p.mensualidad,
+        }))
+      : metricas.modelosActivos.serie.map((p) => ({
+          etiqueta: formatearFechaSerie(p.semanaInicio),
+          creditos: p.creditos,
+          mensualidad: p.mensualidad,
+        }))
+    : []
+
+  const serieAdopcionPeriodo =
+    metricas && !monetizacionMensual
+      ? metricas.adopcion.serie.map((p) => ({
+          etiqueta: formatearFechaSerie(p.semanaInicio),
+          verificados: p.verificadosSemana,
+          conModelo: p.conModeloActivoSemana,
+        }))
+      : []
+
+  const etiquetaRangoMonetizacion = rangoTexto(mesInicio, mesFin)
 
   useEffect(() => {
     if (tab !== 'tecnicos') return
@@ -1158,13 +1215,20 @@ export default function Monetizacion() {
         aria-label="Métricas de monetización"
         className="space-y-4 rounded-lg border border-line bg-surface p-5 shadow-sm"
       >
-        <div>
-          <h2 className="font-display text-base font-semibold text-ink">
-            Métricas de monetización
-          </h2>
-          <p className="mt-1 text-sm text-ink-3">
-            Evolución de ingresos, modelos activos y adopción de monetización.
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="font-display text-base font-semibold text-ink">
+              Métricas de monetización
+            </h2>
+            <p className="mt-1 text-sm text-ink-3">
+              Evolución de ingresos, modelos activos y adopción de monetización.
+            </p>
+          </div>
+          <SelectorRangoMeses
+            mesInicio={mesInicio}
+            mesFin={mesFin}
+            onChange={actualizarRango}
+          />
         </div>
 
         {cargandoMetricas && !metricas ? (
@@ -1238,18 +1302,19 @@ export default function Monetizacion() {
             </div>
 
             <PanelGrafico
-              titulo="Ingresos por semana"
-              descripcion="Créditos, mensualidades, comisiones y total"
+              titulo={monetizacionMensual ? 'Ingresos por mes' : 'Ingresos por semana'}
+              descripcion={
+                monetizacionMensual
+                  ? `Periodo ${etiquetaRangoMonetizacion} · créditos, mensualidades, comisiones y total`
+                  : 'Créditos, mensualidades, comisiones y total'
+              }
             >
-              {metricas.ingresos.serie.some(
-                (p) =>
-                  p.ingresosCreditosSemana > 0 ||
-                  p.ingresosMensualidadSemana > 0 ||
-                  p.ingresosComisionesSemana > 0,
+              {serieIngresosPeriodo.some(
+                (p) => p.creditos > 0 || p.mensualidad > 0 || p.comisiones > 0,
               ) ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={metricas.ingresos.serie}
+                    data={serieIngresosPeriodo}
                     margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
                   >
                     <CartesianGrid
@@ -1258,8 +1323,7 @@ export default function Monetizacion() {
                       stroke="var(--color-line)"
                     />
                     <XAxis
-                      dataKey="semanaInicio"
-                      tickFormatter={formatearFechaSerie}
+                      dataKey="etiqueta"
                       tickLine={false}
                       axisLine={false}
                       tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
@@ -1284,7 +1348,7 @@ export default function Monetizacion() {
                         return (
                           <TooltipGrafico
                             activo={active}
-                            etiqueta={formatearFechaSerieLarga(label)}
+                            etiqueta={String(label)}
                             filas={filas}
                           />
                         )
@@ -1293,7 +1357,7 @@ export default function Monetizacion() {
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                     <Line
                       type="monotone"
-                      dataKey="ingresosCreditosSemana"
+                      dataKey="creditos"
                       name="Créditos"
                       stroke="var(--color-chart-1)"
                       strokeWidth={2}
@@ -1302,7 +1366,7 @@ export default function Monetizacion() {
                     />
                     <Line
                       type="monotone"
-                      dataKey="ingresosMensualidadSemana"
+                      dataKey="mensualidad"
                       name="Mensualidades"
                       stroke="var(--color-chart-3)"
                       strokeWidth={2}
@@ -1311,7 +1375,7 @@ export default function Monetizacion() {
                     />
                     <Line
                       type="monotone"
-                      dataKey="ingresosComisionesSemana"
+                      dataKey="comisiones"
                       name="Comisiones"
                       stroke="var(--color-chart-4)"
                       strokeWidth={2}
@@ -1320,7 +1384,7 @@ export default function Monetizacion() {
                     />
                     <Line
                       type="monotone"
-                      dataKey="ingresosTotalSemana"
+                      dataKey="total"
                       name="Total"
                       stroke="var(--color-ink)"
                       strokeWidth={2.4}
@@ -1338,15 +1402,19 @@ export default function Monetizacion() {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <PanelGrafico
-                titulo="Modelos activos por semana"
-                descripcion="Técnicos con créditos vs mensualidad"
+                titulo={monetizacionMensual ? 'Modelos activos por mes' : 'Modelos activos por semana'}
+                descripcion={
+                  monetizacionMensual
+                    ? `Periodo ${etiquetaRangoMonetizacion} · técnicos con créditos vs mensualidad`
+                    : 'Técnicos con créditos vs mensualidad'
+                }
               >
-                {metricas.modelosActivos.serie.some(
+                {serieModelosPeriodo.some(
                   (p) => p.creditos > 0 || p.mensualidad > 0,
                 ) ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                      data={metricas.modelosActivos.serie}
+                      data={serieModelosPeriodo}
                       margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid
@@ -1355,8 +1423,7 @@ export default function Monetizacion() {
                         stroke="var(--color-line)"
                       />
                       <XAxis
-                        dataKey="semanaInicio"
-                        tickFormatter={formatearFechaSerie}
+                        dataKey="etiqueta"
                         tickLine={false}
                         axisLine={false}
                         tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
@@ -1381,7 +1448,7 @@ export default function Monetizacion() {
                           return (
                             <TooltipGrafico
                               activo={active}
-                              etiqueta={formatearFechaSerieLarga(label)}
+                              etiqueta={String(label)}
                               filas={filas}
                             />
                           )
@@ -1417,14 +1484,24 @@ export default function Monetizacion() {
 
               <PanelGrafico
                 titulo="Adopción de monetización"
-                descripcion="Técnicos verificados vs con modelo activo"
+                descripcion={
+                  monetizacionMensual
+                    ? `Disponible por semana; el rango ${etiquetaRangoMonetizacion} abarca varios meses`
+                    : 'Técnicos verificados vs con modelo activo'
+                }
               >
-                {metricas.adopcion.serie.some(
-                  (p) => p.verificadosSemana > 0 || p.conModeloActivoSemana > 0,
-                ) ? (
+                {monetizacionMensual ? (
+                  <p className="grid h-full place-items-center text-center text-sm text-ink-3">
+                    La serie de adopción solo existe por semana.
+                    <br />
+                    Selecciona un rango de un mes para verla.
+                  </p>
+                ) : serieAdopcionPeriodo.some(
+                    (p) => p.verificados > 0 || p.conModelo > 0,
+                  ) ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                      data={metricas.adopcion.serie}
+                      data={serieAdopcionPeriodo}
                       margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid
@@ -1433,8 +1510,7 @@ export default function Monetizacion() {
                         stroke="var(--color-line)"
                       />
                       <XAxis
-                        dataKey="semanaInicio"
-                        tickFormatter={formatearFechaSerie}
+                        dataKey="etiqueta"
                         tickLine={false}
                         axisLine={false}
                         tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
@@ -1459,7 +1535,7 @@ export default function Monetizacion() {
                           return (
                             <TooltipGrafico
                               activo={active}
-                              etiqueta={formatearFechaSerieLarga(label)}
+                              etiqueta={String(label)}
                               filas={filas}
                             />
                           )
@@ -1468,7 +1544,7 @@ export default function Monetizacion() {
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                       <Line
                         type="monotone"
-                        dataKey="verificadosSemana"
+                        dataKey="verificados"
                         name="Verificados"
                         stroke="var(--color-chart-2)"
                         strokeWidth={2.4}
@@ -1477,7 +1553,7 @@ export default function Monetizacion() {
                       />
                       <Line
                         type="monotone"
-                        dataKey="conModeloActivoSemana"
+                        dataKey="conModelo"
                         name="Con modelo activo"
                         stroke="var(--color-chart-4)"
                         strokeWidth={2.4}

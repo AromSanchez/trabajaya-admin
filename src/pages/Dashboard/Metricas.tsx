@@ -12,6 +12,8 @@ import {
   YAxis,
 } from 'recharts'
 import type { MetricasDashboard, MetricasMonetizacion } from '../../services/admin'
+import { SelectorRangoMeses } from '../../components/SelectorRangoMeses'
+import { diferenciaMeses, nombreMesCorto, rangoTexto } from '../../lib/periodo'
 import {
   IconAlertTriangle,
   IconCheckCircle,
@@ -485,37 +487,52 @@ const ESTADOS_SERVICIO_INFO: Record<string, { label: string; colorVar: string }>
 
 interface RegistrosVerificacionesProps {
   metricas: MetricasDashboard
-  mes: string
+  mensual: boolean
+  span: number
+  etiquetaRango: string
 }
 
 function RegistrosVerificacionesMetricas({
   metricas,
-  mes,
+  mensual,
+  span,
+  etiquetaRango,
 }: RegistrosVerificacionesProps) {
   const [vista, setVista] = useState<'grafico' | 'tabla'>('grafico')
 
-  const tieneSemanasMes = Boolean(
+  const serieSemanal = !mensual && Boolean(
     metricas.semanalDelMes?.serie && metricas.semanalDelMes.serie.length > 0,
   )
+  const serieMes = mensual && metricas.seriesMensuales
+    ? metricas.seriesMensuales.serie.slice(-span)
+    : null
 
-  const datos = tieneSemanasMes
+  const datos = serieSemanal
     ? metricas.semanalDelMes!.serie.map((punto, i) => ({
         semana: `Sem. ${i + 1} (${formatearSemana(punto.semanaInicio)})`,
         registros: punto.registrosNuevos,
         verificados: punto.verificados,
       }))
-    : metricas.registrosVerificaciones.serie.slice(-8).map((punto) => ({
-        semana: formatearSemana(punto.semanaInicio),
-        registros: punto.registrosNuevos,
-        verificados: punto.verificados,
-      }))
+    : serieMes
+      ? serieMes.map((punto) => ({
+          semana: nombreMesCorto(punto.mes),
+          registros: punto.registros,
+          verificados: punto.verificados,
+        }))
+      : metricas.registrosVerificaciones.serie.slice(-8).map((punto) => ({
+          semana: formatearSemana(punto.semanaInicio),
+          registros: punto.registrosNuevos,
+          verificados: punto.verificados,
+        }))
 
-  const descripcion = tieneSemanasMes
-    ? `Técnicos por semana · ${obtenerNombreMes(mes)}`
-    : `Técnicos por semana · últimas ${Math.min(
-        8,
-        metricas.registrosVerificaciones.semanas || 8,
-      )} semanas`
+  const descripcion = serieSemanal
+    ? `Técnicos por semana · ${etiquetaRango}`
+    : serieMes
+      ? `Técnicos por mes · ${etiquetaRango}`
+      : `Técnicos por semana · últimas ${Math.min(
+          8,
+          metricas.registrosVerificaciones.semanas || 8,
+        )} semanas`
 
   const hayDatos = datos.some((p) => p.registros > 0 || p.verificados > 0)
 
@@ -604,41 +621,60 @@ function RegistrosVerificacionesMetricas({
 
 function SubseccionTecnicos({
   metricas,
-  mes,
+  mensual,
+  span,
+  etiquetaRango,
 }: {
   metricas: MetricasDashboard
-  mes: string
+  mensual: boolean
+  span: number
+  etiquetaRango: string
 }) {
-  const tieneSemanasMes = Boolean(
+  const serieSemanal = !mensual && Boolean(
     metricas.semanalDelMes?.serie && metricas.semanalDelMes.serie.length > 0,
   )
+  const serieMes = mensual && metricas.seriesMensuales
+    ? metricas.seriesMensuales.serie.slice(-span)
+    : null
 
-  const serieCancela = tieneSemanasMes
+  const serieCancela = serieSemanal
     ? metricas.semanalDelMes!.serie.map((punto, i) => ({
         semana: `Sem. ${i + 1} (${formatearSemana(punto.semanaInicio)})`,
         tardias: punto.cancelacionesTardias,
       }))
-    : metricas.cancelacionesTardiasSemanales.serie.slice(-8).map((punto) => ({
-        semana: formatearSemana(punto.semanaInicio),
-        tardias: punto.total,
-      }))
+    : serieMes
+      ? serieMes.map((punto) => ({
+          semana: nombreMesCorto(punto.mes),
+          tardias: punto.cancelacionesTardias,
+        }))
+      : metricas.cancelacionesTardiasSemanales.serie.slice(-8).map((punto) => ({
+          semana: formatearSemana(punto.semanaInicio),
+          tardias: punto.total,
+        }))
 
   const hayCancela = serieCancela.some((p) => p.tardias > 0)
   const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
 
-  const descripcionCancela = tieneSemanasMes
-    ? `Por semana · ${obtenerNombreMes(mes)}`
-    : `Por semana · últimas ${Math.min(
-        8,
-        metricas.cancelacionesTardiasSemanales.semanas || 8,
-      )} semanas`
+  const descripcionCancela = serieSemanal
+    ? `Por semana · ${etiquetaRango}`
+    : serieMes
+      ? `Por mes · ${etiquetaRango}`
+      : `Por semana · últimas ${Math.min(
+          8,
+          metricas.cancelacionesTardiasSemanales.semanas || 8,
+        )} semanas`
 
   const serieMensual = metricas.seriesMensuales?.serie
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-3">
-        <RegistrosVerificacionesMetricas metricas={metricas} mes={mes} />
+        <RegistrosVerificacionesMetricas
+          metricas={metricas}
+          mensual={mensual}
+          span={span}
+          etiquetaRango={etiquetaRango}
+        />
 
         <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
           <h4 className="font-display text-base font-semibold text-ink">
@@ -744,32 +780,37 @@ function SubseccionTecnicos({
 function SubseccionServicios({
   marketplace,
   mensual,
+  span,
+  etiquetaRango,
   seriesMensuales,
   semanalDelMes,
 }: {
   marketplace: NonNullable<MetricasDashboard['marketplace']>
   mensual: boolean
+  span: number
+  etiquetaRango: string
   seriesMensuales?: MetricasDashboard['seriesMensuales']
   semanalDelMes?: MetricasDashboard['semanalDelMes']
 }) {
   const { servicios, clientes, calidad } = marketplace
-  const usarSemanalDelMes = !!semanalDelMes?.serie && semanalDelMes.serie.length > 0
-  const usarMensual = !usarSemanalDelMes && mensual && !!seriesMensuales?.serie
+  const usarSemanalDelMes = !mensual && !!semanalDelMes?.serie && semanalDelMes.serie.length > 0
+  const serieMes = mensual && seriesMensuales ? seriesMensuales.serie.slice(-span) : null
+  const usarMensual = !!serieMes
   const serieCompletadas = (usarSemanalDelMes
     ? semanalDelMes!.serie
     : usarMensual
-      ? seriesMensuales!.serie
+      ? serieMes
       : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
   const valorCompletadas = (punto: Record<string, unknown>) =>
     usarSemanalDelMes || usarMensual ? aNumero(punto.completados) : aNumero(punto.completadas)
   const etiquetaCompletadas = (punto: Record<string, unknown>) =>
     usarMensual
-      ? aTexto(punto.mes)
+      ? nombreMesCorto(aTexto(punto.mes))
       : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin))
   const descripcionCompletadas = usarSemanalDelMes
-    ? 'Por semana · mes seleccionado'
+    ? `Por semana · ${etiquetaRango}`
     : usarMensual
-      ? 'Por mes · últimos 12 meses'
+      ? `Por mes · ${etiquetaRango}`
       : 'Por semana · últimas 8 semanas'
 
   const dona = servicios.porEstado.map((estado) => ({
@@ -868,17 +909,18 @@ function SubseccionServicios({
           icono={IconFlag}
         />
       </div>
-      {usarMensual && serieCompletadas.length >= 2 && (
+      {seriesMensuales && seriesMensuales.serie.length >= 2 && (
         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
           <h4 className="font-display text-base font-semibold text-ink">Comparación vs mes anterior</h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            {aTexto(serieCompletadas[serieCompletadas.length - 2].mes)} - {aTexto(serieCompletadas[serieCompletadas.length - 1].mes)}
+            {nombreMesCorto(seriesMensuales.serie[seriesMensuales.serie.length - 2].mes)} vs{' '}
+            {nombreMesCorto(seriesMensuales.serie[seriesMensuales.serie.length - 1].mes)}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <DeltaMes etiqueta="Solicitudes" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].servicios)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].servicios)} />
-            <DeltaMes etiqueta="Completados" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].completados)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].completados)} />
-            <DeltaMes etiqueta="Conversión" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].tasaConversion)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].tasaConversion)} sufijo=" pts" />
-            <DeltaMes etiqueta="Reseñas" actual={aNumero(serieCompletadas[serieCompletadas.length - 1].resenas)} anterior={aNumero(serieCompletadas[serieCompletadas.length - 2].resenas)} />
+            <DeltaMes etiqueta="Solicitudes" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].servicios)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].servicios)} />
+            <DeltaMes etiqueta="Completados" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].completados)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].completados)} />
+            <DeltaMes etiqueta="Conversión" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].tasaConversion)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].tasaConversion)} sufijo=" pts" />
+            <DeltaMes etiqueta="Reseñas" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].resenas)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].resenas)} />
           </div>
         </div>
       )}
@@ -1100,15 +1142,19 @@ export function ErrorMonetizacion({
 
 export function SeccionMetricas({
   metricas,
-  mes,
-  onMesChange,
+  mesInicio,
+  mesFin,
+  onRangoChange,
 }: {
   metricas: MetricasDashboard
-  mes: string
-  onMesChange: (mes: string) => void
+  mesInicio: string
+  mesFin: string
+  onRangoChange: (mesInicio: string, mesFin: string) => void
 }) {
   const marketplace = metricas.marketplace
-  const mensual = true
+  const span = diferenciaMeses(mesInicio, mesFin)
+  const mensual = span > 1
+  const etiquetaRango = rangoTexto(mesInicio, mesFin)
 
   return (
     <section aria-labelledby="titulo-metricas" className="pt-3">
@@ -1124,50 +1170,14 @@ export function SeccionMetricas({
             Métricas
           </h2>
           <p className="text-sm text-ink-2">
-            Tendencias mensuales, calidad y monetización del marketplace.
+            Tendencias del periodo, calidad y monetización del marketplace.
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 text-sm text-ink-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-ink-3">
-            Periodo
-          </span>
-          <select
-            value={mes.slice(0, 4)}
-            onChange={(evento) =>
-              onMesChange(`${evento.target.value}-${mes.slice(5, 7)}`)
-            }
-            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {Array.from({ length: 6 }, (_, indice) => {
-              const anio = new Date().getFullYear() - 3 + indice
-              return (
-                <option key={anio} value={String(anio)}>
-                  {anio}
-                </option>
-              )
-            })}
-          </select>
-          <select
-            value={mes.slice(5, 7)}
-            onChange={(evento) =>
-              onMesChange(`${mes.slice(0, 4)}-${evento.target.value}`)
-            }
-            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {Array.from({ length: 12 }, (_, indice) => {
-              const valor = String(indice + 1).padStart(2, '0')
-              const etiqueta = new Date(2000, indice, 1).toLocaleDateString(
-                'es-PE',
-                { month: 'long' },
-              )
-              return (
-                <option key={valor} value={valor}>
-                  {etiqueta}
-                </option>
-              )
-            })}
-          </select>
-        </div>
+        <SelectorRangoMeses
+          mesInicio={mesInicio}
+          mesFin={mesFin}
+          onChange={onRangoChange}
+        />
       </header>
 
       <CabeceraSubseccion
@@ -1176,7 +1186,12 @@ export function SeccionMetricas({
         descripcion="Registros, verificaciones y tiempos del equipo de verificación."
       />
       <div className="mt-4">
-        <SubseccionTecnicos metricas={metricas} mes={mes} />
+        <SubseccionTecnicos
+          metricas={metricas}
+          mensual={mensual}
+          span={span}
+          etiquetaRango={etiquetaRango}
+        />
       </div>
 
       <CabeceraSubseccion
@@ -1189,6 +1204,8 @@ export function SeccionMetricas({
           <SubseccionServicios
             marketplace={marketplace}
             mensual={mensual}
+            span={span}
+            etiquetaRango={etiquetaRango}
             seriesMensuales={metricas.seriesMensuales}
             semanalDelMes={metricas.semanalDelMes}
           />

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ComponentType } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useDashboard } from '../../hooks/useDashboard'
+import { mesActualISO, restarMeses } from '../../lib/periodo'
 import type { MetricasDashboard } from '../../services/admin'
 import { SeccionMetricas } from './Metricas'
 import { ESTADOS_INFO } from '../../components/estados'
@@ -538,13 +539,18 @@ function BloqueError({ error, onReintentar }: { error: string; onReintentar: () 
 
 export default function Dashboard() {
   const { usuario } = useAuth()
-  const [mes, setMes] = useState<string>(new Date().toISOString().slice(0, 7))
+  const [mesInicio, setMesInicio] = useState<string>(restarMeses(mesActualISO(), 2))
+  const [mesFin, setMesFin] = useState<string>(mesActualISO())
+  const actualizarRango = useCallback((inicio: string, fin: string) => {
+    setMesInicio(inicio)
+    setMesFin(fin)
+  }, [])
   const {
     metricas,
     cargando,
     error,
     recargar,
-  } = useDashboard(mes)
+  } = useDashboard(mesInicio, mesFin)
 
   const encabezado = (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -773,8 +779,9 @@ export default function Dashboard() {
       {/* Métricas de evolución: técnicos, servicios/clientes y monetización */}
       <SeccionMetricas
         metricas={metricas}
-        mes={mes}
-        onMesChange={setMes}
+        mesInicio={mesInicio}
+        mesFin={mesFin}
+        onRangoChange={actualizarRango}
       />
     </div>
   )
