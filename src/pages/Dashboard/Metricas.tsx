@@ -27,13 +27,17 @@ import {
 
 function formatearSemanaRango(isoInicio: string | unknown, isoFin: string | unknown): string {
   const inicio = new Date(typeof isoInicio === 'string' ? isoInicio : '')
-  const fin = new Date(typeof isoFin === 'string' ? isoFin : '')
-  
-  if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
+
+  if (isNaN(inicio.getTime())) {
     return '—'
   }
-  
-  const fmt = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short' })
+
+  const fin =
+    typeof isoFin === 'string' && !isNaN(new Date(isoFin).getTime())
+      ? new Date(isoFin)
+      : new Date(inicio.getTime() + 6 * 24 * 60 * 60 * 1000)
+
+  const fmt = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short', timeZone: 'UTC' })
   return `${fmt.format(inicio)} - ${fmt.format(fin)}`
 }
 
@@ -741,16 +745,32 @@ function SubseccionServicios({
   marketplace,
   mensual,
   seriesMensuales,
+  semanalDelMes,
 }: {
   marketplace: NonNullable<MetricasDashboard['marketplace']>
   mensual: boolean
   seriesMensuales?: MetricasDashboard['seriesMensuales']
+  semanalDelMes?: MetricasDashboard['semanalDelMes']
 }) {
   const { servicios, clientes, calidad } = marketplace
-  const usarMensual = mensual && !!seriesMensuales?.serie
-  const serieCompletadas = (usarMensual
-    ? seriesMensuales!.serie
-    : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
+  const usarSemanalDelMes = !!semanalDelMes?.serie && semanalDelMes.serie.length > 0
+  const usarMensual = !usarSemanalDelMes && mensual && !!seriesMensuales?.serie
+  const serieCompletadas = (usarSemanalDelMes
+    ? semanalDelMes!.serie
+    : usarMensual
+      ? seriesMensuales!.serie
+      : servicios.evolucionCompletadasSemanal.serie) as unknown as Array<Record<string, unknown>>
+  const valorCompletadas = (punto: Record<string, unknown>) =>
+    usarSemanalDelMes || usarMensual ? aNumero(punto.completados) : aNumero(punto.completadas)
+  const etiquetaCompletadas = (punto: Record<string, unknown>) =>
+    usarMensual
+      ? aTexto(punto.mes)
+      : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin))
+  const descripcionCompletadas = usarSemanalDelMes
+    ? 'Por semana · mes seleccionado'
+    : usarMensual
+      ? 'Por mes · últimos 12 meses'
+      : 'Por semana · últimas 8 semanas'
 
   const dona = servicios.porEstado.map((estado) => ({
     nombre: ESTADOS_SERVICIO_INFO[estado.estado]?.label ?? capitalizar(estado.estado),
@@ -759,9 +779,7 @@ function SubseccionServicios({
       ESTADOS_SERVICIO_INFO[estado.estado]?.colorVar ?? 'var(--color-pending)',
   }))
 
-  const hayCompletadas = serieCompletadas.some(
-    (punto) => aNumero(punto.completadas) > 0,
-  )
+  const hayCompletadas = serieCompletadas.some((punto) => valorCompletadas(punto) > 0)
   const hayDona = servicios.porEstado.some((estado) => estado.total > 0)
 
   return (
@@ -772,16 +790,14 @@ function SubseccionServicios({
             Servicios completados
           </h4>
           <p className="mt-0.5 text-sm text-ink-2">
-            Por semana · últimas 8 semanas
+            {descripcionCompletadas}
           </p>
           <div className="mt-4">
             {hayCompletadas ? (
               <GraficoLineas
                 datos={serieCompletadas.map((punto) => ({
-                  semana: usarMensual
-                    ? aTexto(punto.mes)
-                    : formatearSemanaRango(aTexto(punto.semanaInicio), aTexto(punto.semanaFin)),
-                  completadas: aNumero(punto.completadas),
+                  semana: etiquetaCompletadas(punto),
+                  completadas: valorCompletadas(punto),
                 }))}
                 etiquetasTooltip={{ completadas: '{v} completados' }}
                 series={[
@@ -837,7 +853,7 @@ function SubseccionServicios({
           icono={IconFlag}
         />
       </div>
-      {serieCompletadas.length >= 2 && (
+      {usarMensual && serieCompletadas.length >= 2 && (
         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
           <h4 className="font-display text-base font-semibold text-ink">Comparación vs mes anterior</h4>
           <p className="mt-0.5 text-sm text-ink-2">
@@ -1159,6 +1175,7 @@ export function SeccionMetricas({
             marketplace={marketplace}
             mensual={mensual}
             seriesMensuales={metricas.seriesMensuales}
+            semanalDelMes={metricas.semanalDelMes}
           />
         ) : (
           <EstadoVacio mensaje="Las métricas de servicios no están disponibles en esta versión del backend. Actualiza el backend para habilitar el bloque de marketplace." />
