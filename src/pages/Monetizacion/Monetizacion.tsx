@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from 'react'
 import {
   listarTecnicosMonetizacion,
   listarTransaccionesMonetizacion,
@@ -140,6 +148,37 @@ function formatDate(d: string) {
   return format(new Date(d), 'dd/MM/yyyy HH:mm', { locale: es })
 }
 
+/* Las series del backend traen ISO completo (ej. 2026-10-05T00:00:00.000Z);
+   se parsea directo y se formatea en UTC para no desplazar el día por zona horaria. */
+const formatoFechaCorta = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'UTC',
+})
+
+const formatoFechaLarga = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
+function aFechaSegura(valor: unknown): Date | null {
+  if (typeof valor !== 'string' || valor === '') return null
+  const fecha = new Date(valor)
+  return Number.isNaN(fecha.getTime()) ? null : fecha
+}
+
+function formatearFechaSerie(valor: unknown): string {
+  const fecha = aFechaSegura(valor)
+  return fecha ? formatoFechaCorta.format(fecha).replace('.', '') : '—'
+}
+
+function formatearFechaSerieLarga(valor: unknown): string {
+  const fecha = aFechaSegura(valor)
+  return fecha ? formatoFechaLarga.format(fecha) : '—'
+}
+
 function InfoTipo({ info }: { info: TipoInfo }) {
   return (
     <span
@@ -271,6 +310,77 @@ function Vacio({ titulo, texto }: { titulo: string; texto: string }) {
   )
 }
 
+function TarjetaMetricaMini({ label, valor }: { label: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-line bg-surface-2 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-ink-3">
+        {label}
+      </p>
+      <p className="mt-2 font-display text-2xl font-semibold tabular-nums text-ink">
+        {valor}
+      </p>
+    </div>
+  )
+}
+
+function PanelGrafico({
+  titulo,
+  descripcion,
+  children,
+}: {
+  titulo: string
+  descripcion: string
+  children: ReactNode
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-line">
+      <div className="border-b border-line px-4 py-3">
+        <h3 className="text-sm font-semibold text-ink">{titulo}</h3>
+        <p className="mt-0.5 text-xs text-ink-3">{descripcion}</p>
+      </div>
+      <div className="h-72 px-2 py-3">{children}</div>
+    </div>
+  )
+}
+
+interface FilaTooltipMonetizacion {
+  color: string
+  nombre: string
+  texto: string
+}
+
+function TooltipGrafico({
+  activo,
+  etiqueta,
+  filas,
+}: {
+  activo: boolean
+  etiqueta: string
+  filas: FilaTooltipMonetizacion[]
+}) {
+  if (!activo || filas.length === 0) return null
+  return (
+    <div className="min-w-40 rounded-md border border-line bg-surface px-3 py-2 text-xs shadow-md">
+      <p className="font-semibold text-ink">{etiqueta}</p>
+      <ul className="mt-1.5 space-y-1">
+        {filas.map((fila) => (
+          <li key={fila.nombre} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-ink-2">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: fila.color }}
+                aria-hidden="true"
+              />
+              {fila.nombre}
+            </span>
+            <span className="font-semibold tabular-nums text-ink">{fila.texto}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 const PAGE_SIZE = 20
 
 export default function Monetizacion() {
@@ -351,8 +461,6 @@ export default function Monetizacion() {
   const [reloadKey, setReloadKey] = useState(0)
 
   const cargarMetricas = useCallback(async () => {
-    setCargandoMetricas(true)
-
     try {
       const resultado = await obtenerMetricasMonetizacion({
         semanas: 8,
@@ -368,7 +476,12 @@ export default function Monetizacion() {
   }, [])
 
   useEffect(() => {
-    void cargarMetricas()
+    const temporizador = window.setTimeout(() => {
+      void cargarMetricas()
+    }, 0)
+    return () => {
+      window.clearTimeout(temporizador)
+    }
   }, [cargarMetricas, reloadKey])
 
   const hayFiltrosTecnicos = tipoSel !== 'todos' || ordenSel !== 'recientes'
@@ -479,6 +592,7 @@ export default function Monetizacion() {
   )
 
   const recargarTodo = () => {
+    setCargandoMetricas(true)
     cargarResumen()
     setPaginaTecnicos(1)
     setPaginaTrans(1)
@@ -768,307 +882,6 @@ export default function Monetizacion() {
       )}
 
 
-      {/* Métricas de monetización */}
-      <section className="space-y-4 rounded-lg border border-line bg-surface p-4 shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold text-ink">
-            Métricas de monetización
-          </h2>
-          <p className="mt-1 text-sm text-ink-3">
-            Evolución de ingresos, modelos activos y adopción de monetización.
-          </p>
-        </div>
-
-        {cargandoMetricas && !metricas ? (
-          <p className="py-6 text-center text-sm text-ink-3">
-            Cargando métricas...
-          </p>
-        ) : !metricas ? (
-          <p className="py-6 text-center text-sm text-ink-3">
-            No se pudieron cargar las métricas. Pulsa Recargar para intentarlo de nuevo.
-          </p>
-        ) : (
-          <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-line p-4">
-                <p className="text-xs font-medium text-ink-3">Técnicos con créditos</p>
-                <p className="mt-2 text-2xl font-semibold text-ink">
-                  {metricas.resumen.totalConCreditos}
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-line p-4">
-                <p className="text-xs font-medium text-ink-3">Con mensualidad</p>
-                <p className="mt-2 text-2xl font-semibold text-ink">
-                  {metricas.resumen.totalConMensualidad}
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-line p-4">
-                <p className="text-xs font-medium text-ink-3">Sin modelo</p>
-                <p className="mt-2 text-2xl font-semibold text-ink">
-                  {metricas.resumen.totalSinModelo}
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-line p-4">
-                <p className="text-xs font-medium text-ink-3">Porcentaje monetizado</p>
-                <p className="mt-2 text-2xl font-semibold text-ink">
-                  {metricas.resumen.porcentajeMonetizados.toFixed(1)}%
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg bg-surface-2 p-4">
-                <p className="text-xs text-ink-3">Ingresos por créditos</p>
-                <p className="mt-2 font-semibold text-ink">
-                  {formatMoney(metricas.resumen.ingresosTotalesCreditos)}
-                </p>
-              </div>
-
-              <div className="rounded-lg bg-surface-2 p-4">
-                <p className="text-xs text-ink-3">Ingresos por mensualidades</p>
-                <p className="mt-2 font-semibold text-ink">
-                  {formatMoney(metricas.resumen.ingresosTotalesMensualidad)}
-                </p>
-              </div>
-
-              <div className="rounded-lg bg-surface-2 p-4">
-                <p className="text-xs text-ink-3">Ingresos por comisiones</p>
-                <p className="mt-2 font-semibold text-ink">
-                  {formatMoney(metricas.resumen.ingresosTotalesComisiones)}
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-line p-4">
-                <p className="text-xs text-ink-3">Ingresos históricos totales</p>
-                <p className="mt-2 text-lg font-semibold text-ink">
-                  {formatMoney(metricas.resumen.ingresosTotales)}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="overflow-hidden rounded-lg border border-line">
-                  <div className="border-b border-line px-4 py-3">
-                    <h3 className="text-sm font-semibold text-ink">
-                      Modelos activos por semana
-                    </h3>
-                  </div>
-
-                  {metricas.modelosActivos.serie.length === 0 ? (
-                    <p className="p-4 text-sm text-ink-3">
-                      No hay datos semanales.
-                    </p>
-                  ) : (
-                    <div className="h-72 w-full p-3">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={metricas.modelosActivos.serie}
-                          margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            vertical={false}
-                          />
-
-                          <XAxis
-                            dataKey="semanaInicio"
-                            tickFormatter={(value) =>
-                              new Date(`${value}T12:00:00`).toLocaleDateString(
-                                'es-PE',
-                                { day: '2-digit', month: 'short' }
-                              )
-                            }
-                            tick={{ fontSize: 12 }}
-                          />
-
-                          <YAxis
-                            allowDecimals={false}
-                            tick={{ fontSize: 12 }}
-                          />
-
-                          <Tooltip
-                            labelFormatter={(value) =>
-                              new Date(`${value}T12:00:00`).toLocaleDateString(
-                                'es-PE',
-                                {
-                                  day: '2-digit',
-                                  month: 'long',
-                                  year: 'numeric',
-                                }
-                              )
-                            }
-                          />
-
-                          <Legend />
-
-                          <Line
-                            type="monotone"
-                            dataKey="creditos"
-                            name="Créditos"
-                            stroke="#6366f1"
-                            strokeWidth={3}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 6 }}
-                          />
-
-                          <Line
-                            type="monotone"
-                            dataKey="mensualidad"
-                            name="Mensualidad"
-                            stroke="#10b981"
-                            strokeWidth={3}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 6 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-
-              <div className="h-72 w-full p-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={metricas.ingresos.serie}
-                    margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey="semanaInicio"
-                      tickFormatter={(value) =>
-                        new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
-                          day: '2-digit',
-                          month: 'short',
-                        })
-                      }
-                      tick={{ fontSize: 12 }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(value) => `S/ ${value}`}
-                      width={75}
-                    />
-                    <Tooltip
-                      labelFormatter={(value) =>
-                        new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric',
-                        })
-                      }
-                      formatter={(value) =>
-                        `S/ ${Number(value ?? 0).toLocaleString('es-PE', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}`
-                      }
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="ingresosCreditosSemana"
-                      name="Créditos"
-                      stroke="#6366f1"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="ingresosMensualidadSemana"
-                      name="Mensualidades"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="ingresosComisionesSemana"
-                      name="Comisiones"
-                      stroke="#f59e0b"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="ingresosTotalSemana"
-                      name="Total"
-                      stroke="#ef4444"
-                      strokeWidth={3}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-            </div>
-
-
-            <div className="h-72 w-full p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={metricas.adopcion.serie}
-                  margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis
-                    dataKey="semanaInicio"
-                    tickFormatter={(value) =>
-                      new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
-                        day: '2-digit',
-                        month: 'short',
-                      })
-                    }
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    labelFormatter={(value) =>
-                      new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    }
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="verificadosSemana"
-                    name="Técnicos verificados"
-                    stroke="#6366f1"
-                    strokeWidth={3}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="conModeloActivoSemana"
-                    name="Con modelo activo"
-                    stroke="#10b981"
-                    strokeWidth={3}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-          </>
-        )}
-      </section>
-
-
       {tab === 'transacciones' && (
         <>
           {/* Filtros — fuera de la tabla */}
@@ -1339,6 +1152,350 @@ export default function Monetizacion() {
           </section>
         </>
       )}
+
+      {/* Métricas de monetización */}
+      <section
+        aria-label="Métricas de monetización"
+        className="space-y-4 rounded-lg border border-line bg-surface p-5 shadow-sm"
+      >
+        <div>
+          <h2 className="font-display text-base font-semibold text-ink">
+            Métricas de monetización
+          </h2>
+          <p className="mt-1 text-sm text-ink-3">
+            Evolución de ingresos, modelos activos y adopción de monetización.
+          </p>
+        </div>
+
+        {cargandoMetricas && !metricas ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, indice) => (
+              <div
+                key={indice}
+                className="animate-pulse rounded-lg border border-line bg-surface-2 p-4"
+              >
+                <span className="block h-3 w-24 bg-line" />
+                <span className="mt-3 block h-7 w-16 bg-line" />
+              </div>
+            ))}
+          </div>
+        ) : !metricas ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <p className="text-sm text-ink-3">
+              No se pudieron cargar las métricas de monetización.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCargandoMetricas(true)
+                void cargarMetricas()
+              }}
+              className="h-9"
+              disabled={cargandoMetricas}
+            >
+              <IconRefresh className={cargandoMetricas ? 'animate-spin' : ''} />
+              Reintentar
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <TarjetaMetricaMini
+                label="Técnicos con créditos"
+                valor={String(metricas.resumen.totalConCreditos)}
+              />
+              <TarjetaMetricaMini
+                label="Con mensualidad"
+                valor={String(metricas.resumen.totalConMensualidad)}
+              />
+              <TarjetaMetricaMini
+                label="Sin modelo"
+                valor={String(metricas.resumen.totalSinModelo)}
+              />
+              <TarjetaMetricaMini
+                label="Porcentaje monetizado"
+                valor={`${metricas.resumen.porcentajeMonetizados.toFixed(1)}%`}
+              />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <TarjetaMetricaMini
+                label="Ingresos por créditos"
+                valor={formatMoney(metricas.resumen.ingresosTotalesCreditos)}
+              />
+              <TarjetaMetricaMini
+                label="Ingresos por mensualidades"
+                valor={formatMoney(metricas.resumen.ingresosTotalesMensualidad)}
+              />
+              <TarjetaMetricaMini
+                label="Ingresos por comisiones"
+                valor={formatMoney(metricas.resumen.ingresosTotalesComisiones)}
+              />
+              <TarjetaMetricaMini
+                label="Ingresos históricos"
+                valor={formatMoney(metricas.resumen.ingresosTotales)}
+              />
+            </div>
+
+            <PanelGrafico
+              titulo="Ingresos por semana"
+              descripcion="Créditos, mensualidades, comisiones y total"
+            >
+              {metricas.ingresos.serie.some(
+                (p) =>
+                  p.ingresosCreditosSemana > 0 ||
+                  p.ingresosMensualidadSemana > 0 ||
+                  p.ingresosComisionesSemana > 0,
+              ) ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={metricas.ingresos.serie}
+                    margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="var(--color-line)"
+                    />
+                    <XAxis
+                      dataKey="semanaInicio"
+                      tickFormatter={formatearFechaSerie}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tickFormatter={(valor: number) => `S/ ${valor}`}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+                      width={60}
+                    />
+                    <Tooltip
+                      cursor={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) return null
+                        const filas = payload.map((entrada) => ({
+                          color: String(entrada.color ?? 'var(--color-ink-3)'),
+                          nombre: String(entrada.name ?? ''),
+                          texto: formatMoney(Number(entrada.value ?? 0)),
+                        }))
+                        return (
+                          <TooltipGrafico
+                            activo={active}
+                            etiqueta={formatearFechaSerieLarga(label)}
+                            filas={filas}
+                          />
+                        )
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosCreditosSemana"
+                      name="Créditos"
+                      stroke="var(--color-chart-1)"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosMensualidadSemana"
+                      name="Mensualidades"
+                      stroke="var(--color-chart-3)"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosComisionesSemana"
+                      name="Comisiones"
+                      stroke="var(--color-chart-4)"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresosTotalSemana"
+                      name="Total"
+                      stroke="var(--color-ink)"
+                      strokeWidth={2.4}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="grid h-full place-items-center text-sm text-ink-3">
+                  Sin ingresos registrados en el periodo.
+                </p>
+              )}
+            </PanelGrafico>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <PanelGrafico
+                titulo="Modelos activos por semana"
+                descripcion="Técnicos con créditos vs mensualidad"
+              >
+                {metricas.modelosActivos.serie.some(
+                  (p) => p.creditos > 0 || p.mensualidad > 0,
+                ) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={metricas.modelosActivos.serie}
+                      margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="var(--color-line)"
+                      />
+                      <XAxis
+                        dataKey="semanaInicio"
+                        tickFormatter={formatearFechaSerie}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+                        width={32}
+                      />
+                      <Tooltip
+                        cursor={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload?.length) return null
+                          const filas = payload.map((entrada) => ({
+                            color: String(entrada.color ?? 'var(--color-ink-3)'),
+                            nombre: String(entrada.name ?? ''),
+                            texto: `${Number(entrada.value ?? 0)} técnicos`,
+                          }))
+                          return (
+                            <TooltipGrafico
+                              activo={active}
+                              etiqueta={formatearFechaSerieLarga(label)}
+                              filas={filas}
+                            />
+                          )
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Line
+                        type="monotone"
+                        dataKey="creditos"
+                        name="Créditos"
+                        stroke="var(--color-chart-1)"
+                        strokeWidth={2.4}
+                        dot={{ r: 2.5 }}
+                        activeDot={{ r: 5 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="mensualidad"
+                        name="Mensualidad"
+                        stroke="var(--color-chart-3)"
+                        strokeWidth={2.4}
+                        dot={{ r: 2.5 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="grid h-full place-items-center text-sm text-ink-3">
+                    Sin técnicos con modelo activo en el periodo.
+                  </p>
+                )}
+              </PanelGrafico>
+
+              <PanelGrafico
+                titulo="Adopción de monetización"
+                descripcion="Técnicos verificados vs con modelo activo"
+              >
+                {metricas.adopcion.serie.some(
+                  (p) => p.verificadosSemana > 0 || p.conModeloActivoSemana > 0,
+                ) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={metricas.adopcion.serie}
+                      margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="var(--color-line)"
+                      />
+                      <XAxis
+                        dataKey="semanaInicio"
+                        tickFormatter={formatearFechaSerie}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+                        width={32}
+                      />
+                      <Tooltip
+                        cursor={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload?.length) return null
+                          const filas = payload.map((entrada) => ({
+                            color: String(entrada.color ?? 'var(--color-ink-3)'),
+                            nombre: String(entrada.name ?? ''),
+                            texto: `${Number(entrada.value ?? 0)} técnicos`,
+                          }))
+                          return (
+                            <TooltipGrafico
+                              activo={active}
+                              etiqueta={formatearFechaSerieLarga(label)}
+                              filas={filas}
+                            />
+                          )
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Line
+                        type="monotone"
+                        dataKey="verificadosSemana"
+                        name="Verificados"
+                        stroke="var(--color-chart-2)"
+                        strokeWidth={2.4}
+                        dot={{ r: 2.5 }}
+                        activeDot={{ r: 5 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="conModeloActivoSemana"
+                        name="Con modelo activo"
+                        stroke="var(--color-chart-4)"
+                        strokeWidth={2.4}
+                        dot={{ r: 2.5 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="grid h-full place-items-center text-sm text-ink-3">
+                    Sin datos de adopción en el periodo.
+                  </p>
+                )}
+              </PanelGrafico>
+            </div>
+          </>
+        )}
+      </section>
     </div>
   )
 }
