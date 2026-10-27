@@ -780,6 +780,8 @@ function SubseccionServicios({
   }))
 
   const hayCompletadas = serieCompletadas.some((punto) => valorCompletadas(punto) > 0)
+  const hayCancelados = serieCompletadas.some((punto) => punto.cancelados !== undefined)
+  const valorCancelados = (punto: Record<string, unknown>) => aNumero(punto.cancelados)
   const hayDona = servicios.porEstado.some((estado) => estado.total > 0)
 
   return (
@@ -793,19 +795,32 @@ function SubseccionServicios({
             {descripcionCompletadas}
           </p>
           <div className="mt-4">
-            {hayCompletadas ? (
+            {hayCompletadas || hayCancelados ? (
               <GraficoLineas
                 datos={serieCompletadas.map((punto) => ({
                   semana: etiquetaCompletadas(punto),
                   completadas: valorCompletadas(punto),
+                  ...(hayCancelados ? { cancelados: valorCancelados(punto) } : {}),
                 }))}
-                etiquetasTooltip={{ completadas: '{v} completados' }}
+                etiquetasTooltip={{
+                  completadas: '{v} completados',
+                  ...(hayCancelados ? { cancelados: '{v} cancelados' } : {}),
+                }}
                 series={[
                   {
                     clave: 'completadas',
                     nombre: 'Completados',
                     colorVar: 'var(--color-chart-1)',
                   },
+                  ...(hayCancelados
+                    ? [
+                        {
+                          clave: 'cancelados',
+                          nombre: 'Cancelados',
+                          colorVar: 'var(--danger)',
+                        },
+                      ]
+                    : []),
                 ]}
               />
             ) : (
