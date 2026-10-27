@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { ComponentType } from 'react'
 import {
   Cell,
+  CartesianGrid,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -13,6 +15,7 @@ import {
 } from 'recharts'
 import type { MetricasDashboard, MetricasMonetizacion } from '../../services/admin'
 import { SelectorRangoMeses } from '../../components/SelectorRangoMeses'
+import { PanelGrafico, TooltipGrafico } from '../../components/panel-grafico'
 import { diferenciaMeses, nombreMesCorto, rangoTexto } from '../../lib/periodo'
 import {
   IconAlertTriangle,
@@ -53,16 +56,6 @@ function formatearSemana(iso: string | unknown): string {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return '—'
   return formatoSemana.format(d).replace('.', '')
-}
-
-function obtenerNombreMes(mesIso: string): string {
-  const [anioStr, mesStr] = mesIso.split('-')
-  const anio = parseInt(anioStr, 10)
-  const mesIndex = parseInt(mesStr, 10) - 1
-  if (isNaN(anio) || isNaN(mesIndex)) return mesIso
-  const fecha = new Date(anio, mesIndex, 1)
-  const nombre = fecha.toLocaleDateString('es-PE', { month: 'long' })
-  return `${capitalizar(nombre)} ${anio}`
 }
 
 const formatoDinero = new Intl.NumberFormat('es-PE', {
@@ -140,67 +133,10 @@ interface SerieDef {
   punteada?: boolean
 }
 
-interface FilaTooltip {
-  color: string
-  nombre: string
-  texto: string
-}
-
 /* ------------------------------------------------------------------ */
 /* Gráfico de líneas (recharts) con leyenda y tooltip                  */
+/* (estilo compartido: PanelGrafico + TooltipGrafico de panel-grafico) */
 /* ------------------------------------------------------------------ */
-
-function TooltipLineas({
-  activo,
-  etiqueta,
-  filas,
-}: {
-  activo: boolean
-  etiqueta: string
-  filas: FilaTooltip[]
-}) {
-  if (!activo || filas.length === 0) return null
-
-  return (
-    <div className="min-w-40 rounded-md border border-line bg-surface px-3 py-2 text-xs shadow-md">
-      <p className="font-semibold text-ink">{etiqueta}</p>
-      <ul className="mt-1.5 space-y-1">
-        {filas.map((fila) => (
-          <li key={fila.nombre} className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5 text-ink-2">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: fila.color }}
-                aria-hidden="true"
-              />
-              {fila.nombre}
-            </span>
-            <span className="tabular-nums font-semibold text-ink">
-              {fila.texto}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function LeyendaLineas({ series }: { series: SerieDef[] }) {
-  return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-2">
-      {series.map((serie) => (
-        <span key={serie.clave} className="inline-flex items-center gap-2">
-          <span
-            className="h-2.5 w-4 rounded-full"
-            style={{ backgroundColor: serie.colorVar }}
-            aria-hidden="true"
-          />
-          {serie.nombre}
-        </span>
-      ))}
-    </div>
-  )
-}
 
 function GraficoLineas({
   datos,
@@ -210,69 +146,73 @@ function GraficoLineas({
 }: {
   datos: PuntoSerie[]
   series: SerieDef[]
-  alto?: number
+  /** Altura fija en px, o 'panel' para llenar el cuerpo de un PanelGrafico. */
+  alto?: number | 'panel'
   etiquetasTooltip: Record<string, string>
 }) {
   return (
-    <>
-      <ResponsiveContainer width="100%" height={alto}>
-        <LineChart
-          data={datos}
-          margin={{ top: 10, right: 10, bottom: 0, left: -18 }}
-        >
-          <XAxis
-            dataKey="semana"
-            tickLine={false}
-            axisLine={false}
-            tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
-            interval="preserveStartEnd"
+    <ResponsiveContainer width="100%" height={typeof alto === 'number' ? alto : '100%'}>
+      <LineChart
+        data={datos}
+        margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+      >
+        <CartesianGrid
+          strokeDasharray="3 3"
+          vertical={false}
+          stroke="var(--color-line)"
+        />
+        <XAxis
+          dataKey="semana"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          allowDecimals={false}
+          tickLine={false}
+          axisLine={false}
+          tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
+        />
+        <Tooltip
+          cursor={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null
+            const filas = payload.map((entrada) => {
+              const serie = series.find((s) => s.clave === entrada.dataKey)
+              const valor = typeof entrada.value === 'number' ? entrada.value : 0
+              const formateo = etiquetasTooltip[serie?.clave ?? '']
+              return {
+                color: serie?.colorVar ?? 'var(--color-ink-3)',
+                nombre: serie?.nombre ?? String(entrada.dataKey),
+                texto: formateo ? formateo.replace('{v}', String(valor)) : String(valor),
+              }
+            })
+            return (
+              <TooltipGrafico
+                activo={active}
+                etiqueta={String(label ?? '')}
+                filas={filas}
+              />
+            )
+          }}
+        />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        {series.map((serie) => (
+          <Line
+            key={serie.clave}
+            type="monotone"
+            dataKey={serie.clave}
+            name={serie.nombre}
+            stroke={serie.colorVar}
+            strokeWidth={2.4}
+            strokeDasharray={serie.punteada ? '6 4' : undefined}
+            dot={{ r: 2.5 }}
+            activeDot={{ r: 4 }}
           />
-          <YAxis
-            allowDecimals={false}
-            tickLine={false}
-            axisLine={false}
-            tick={{ fill: 'var(--color-ink-3)', fontSize: 11 }}
-          />
-          <Tooltip
-            cursor={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
-            content={({ active, payload, label }) => {
-              if (!active || !payload?.length) return null
-              const filas = payload.map((entrada) => {
-                const serie = series.find((s) => s.clave === entrada.dataKey)
-                const valor = typeof entrada.value === 'number' ? entrada.value : 0
-                const formateo = etiquetasTooltip[serie?.clave ?? '']
-                return {
-                  color: serie?.colorVar ?? 'var(--color-ink-3)',
-                  nombre: serie?.nombre ?? String(entrada.dataKey),
-                  texto: formateo ? formateo.replace('{v}', String(valor)) : String(valor),
-                }
-              })
-              return (
-                <TooltipLineas
-                  activo={active}
-                  etiqueta={String(label ?? '')}
-                  filas={filas}
-                />
-              )
-            }}
-          />
-          {series.map((serie) => (
-            <Line
-              key={serie.clave}
-              type="monotone"
-              dataKey={serie.clave}
-              name={serie.nombre}
-              stroke={serie.colorVar}
-              strokeWidth={2.4}
-              strokeDasharray={serie.punteada ? '6 4' : undefined}
-              dot={{ r: 2.5, fill: 'var(--color-surface)', strokeWidth: 2 }}
-              activeDot={{ r: 4.5, strokeWidth: 0 }}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-      <LeyendaLineas series={series} />
-    </>
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
   )
 }
 
@@ -317,7 +257,7 @@ function GraficoDona({ filas }: { filas: FilaDona[] }) {
                 const porcentaje =
                   total > 0 ? Math.round((valor / total) * 1000) / 10 : 0
                 return (
-                  <TooltipLineas
+                  <TooltipGrafico
                     activo={active}
                     etiqueta={String(entrada.name ?? '')}
                     filas={[
@@ -537,14 +477,11 @@ function RegistrosVerificacionesMetricas({
   const hayDatos = datos.some((p) => p.registros > 0 || p.verificados > 0)
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5 shadow-sm xl:col-span-2">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h4 className="font-display text-base font-semibold text-ink">
-            Registros y verificaciones
-          </h4>
-          <p className="mt-0.5 text-sm text-ink-2">{descripcion}</p>
-        </div>
+    <PanelGrafico
+      titulo="Registros y verificaciones"
+      descripcion={descripcion}
+      className="xl:col-span-2"
+      extra={
         <div className="inline-flex rounded-md border border-line p-0.5">
           {(['grafico', 'tabla'] as const).map((opcion) => (
             <button
@@ -561,61 +498,60 @@ function RegistrosVerificacionesMetricas({
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="mt-4">
-        {!hayDatos ? (
-          <EstadoVacio mensaje="No hay registros ni verificaciones en el periodo seleccionado." />
-        ) : vista === 'grafico' ? (
-          <GraficoLineas
-            datos={datos}
-            etiquetasTooltip={{
-              registros: '{v} registros nuevos',
-              verificados: '{v} verificados',
-            }}
-            series={[
-              {
-                clave: 'registros',
-                nombre: 'Registros nuevos',
-                colorVar: 'var(--color-chart-1)',
-              },
-              {
-                clave: 'verificados',
-                nombre: 'Verificados',
-                colorVar: 'var(--color-chart-4)',
-              },
-            ]}
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-3">
-                  <th className="py-2 pr-4 font-medium">Semana</th>
-                  <th className="py-2 pr-4 text-right font-medium">
-                    Registros nuevos
-                  </th>
-                  <th className="py-2 text-right font-medium">Verificados</th>
+      }
+    >
+      {!hayDatos ? (
+        <EstadoVacio mensaje="No hay registros ni verificaciones en el periodo seleccionado." />
+      ) : vista === 'grafico' ? (
+        <GraficoLineas
+          datos={datos}
+          alto="panel"
+          etiquetasTooltip={{
+            registros: '{v} registros nuevos',
+            verificados: '{v} verificados',
+          }}
+          series={[
+            {
+              clave: 'registros',
+              nombre: 'Registros nuevos',
+              colorVar: 'var(--color-chart-1)',
+            },
+            {
+              clave: 'verificados',
+              nombre: 'Verificados',
+              colorVar: 'var(--color-chart-4)',
+            },
+          ]}
+        />
+      ) : (
+        <div className="h-full overflow-y-auto px-2">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-3">
+                <th className="py-2 pr-4 font-medium">{serieMes ? 'Mes' : 'Semana'}</th>
+                <th className="py-2 pr-4 text-right font-medium">
+                  Registros nuevos
+                </th>
+                <th className="py-2 text-right font-medium">Verificados</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {datos.map((punto) => (
+                <tr key={punto.semana}>
+                  <td className="py-2.5 pr-4 text-ink-2">{punto.semana}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-ink">
+                    {punto.registros}
+                  </td>
+                  <td className="py-2.5 text-right tabular-nums text-ink">
+                    {punto.verificados}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {datos.map((punto) => (
-                  <tr key={punto.semana}>
-                    <td className="py-2.5 pr-4 text-ink-2">{punto.semana}</td>
-                    <td className="py-2.5 pr-4 text-right tabular-nums text-ink">
-                      {punto.registros}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums text-ink">
-                      {punto.verificados}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </section>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </PanelGrafico>
   )
 }
 
@@ -714,40 +650,37 @@ function SubseccionTecnicos({
         </section>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <h4 className="font-display text-base font-semibold text-ink">
-            Cancelaciones tardías
-          </h4>
-          <p className="mt-0.5 text-sm text-ink-2">{descripcionCancela}</p>
-          <div className="mt-4">
-            {hayCancela ? (
-              <GraficoLineas
-                datos={serieCancela}
-                etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
-                series={[
-                  {
-                    clave: 'tardias',
-                    nombre: 'Cancelaciones tardías',
-                    colorVar: 'var(--color-chart-5)',
-                  },
-                ]}
-              />
-            ) : (
-              <EstadoVacio mensaje="Sin cancelaciones tardías en el periodo." />
-            )}
-          </div>
-        </section>
+      <div className="space-y-4">
+        <PanelGrafico titulo="Cancelaciones tardías" descripcion={descripcionCancela} alto="lg">
+          {hayCancela ? (
+            <GraficoLineas
+              datos={serieCancela}
+              alto="panel"
+              etiquetasTooltip={{ tardias: '{v} cancelaciones' }}
+              series={[
+                {
+                  clave: 'tardias',
+                  nombre: 'Cancelaciones tardías',
+                  colorVar: 'var(--color-chart-5)',
+                },
+              ]}
+            />
+          ) : (
+            <EstadoVacio mensaje="Sin cancelaciones tardías en el periodo." />
+          )}
+        </PanelGrafico>
 
         {serieMensual && serieMensual.length >= 2 && (
-          <div className="rounded-xl border border-line bg-surface p-5 shadow-sm xl:col-span-2">
-            <h4 className="font-display text-base font-semibold text-ink">
-              Comparación vs mes anterior
-            </h4>
-            <p className="mt-0.5 text-sm text-ink-2">
-              {obtenerNombreMes(serieMensual[serieMensual.length - 1].mes)} frente a{' '}
-              {obtenerNombreMes(serieMensual[serieMensual.length - 2].mes)}
-            </p>
+          <div className="rounded-lg border border-line bg-surface p-5">
+            <div>
+              <h3 className="text-sm font-semibold text-ink">
+                Comparación vs mes anterior
+              </h3>
+              <p className="mt-0.5 text-xs text-ink-3">
+                {nombreMesCorto(serieMensual[serieMensual.length - 1].mes)} frente a{' '}
+                {nombreMesCorto(serieMensual[serieMensual.length - 2].mes)}
+              </p>
+            </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <DeltaMes
                 etiqueta="Registrados"
@@ -828,63 +761,48 @@ function SubseccionServicios({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-2">
-        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <h4 className="font-display text-base font-semibold text-ink">
-            Servicios completados
-          </h4>
-          <p className="mt-0.5 text-sm text-ink-2">
-            {descripcionCompletadas}
-          </p>
-          <div className="mt-4">
-            {hayCompletadas || hayCancelados ? (
-              <GraficoLineas
-                datos={serieCompletadas.map((punto) => ({
-                  semana: etiquetaCompletadas(punto),
-                  completadas: valorCompletadas(punto),
-                  ...(hayCancelados ? { cancelados: valorCancelados(punto) } : {}),
-                }))}
-                etiquetasTooltip={{
-                  completadas: '{v} completados',
-                  ...(hayCancelados ? { cancelados: '{v} cancelados' } : {}),
-                }}
-                series={[
-                  {
-                    clave: 'completadas',
-                    nombre: 'Completados',
-                    colorVar: 'var(--color-chart-1)',
-                  },
-                  ...(hayCancelados
-                    ? [
-                        {
-                          clave: 'cancelados',
-                          nombre: 'Cancelados',
-                          colorVar: 'var(--danger)',
-                        },
-                      ]
-                    : []),
-                ]}
-              />
-            ) : (
-              <EstadoVacio mensaje="Sin servicios completados en el periodo." />
-            )}
-          </div>
-        </section>
+        <PanelGrafico titulo="Servicios completados" descripcion={descripcionCompletadas}>
+          {hayCompletadas || hayCancelados ? (
+            <GraficoLineas
+              datos={serieCompletadas.map((punto) => ({
+                semana: etiquetaCompletadas(punto),
+                completadas: valorCompletadas(punto),
+                ...(hayCancelados ? { cancelados: valorCancelados(punto) } : {}),
+              }))}
+              alto="panel"
+              etiquetasTooltip={{
+                completadas: '{v} completados',
+                ...(hayCancelados ? { cancelados: '{v} cancelados' } : {}),
+              }}
+              series={[
+                {
+                  clave: 'completadas',
+                  nombre: 'Completados',
+                  colorVar: 'var(--color-chart-1)',
+                },
+                ...(hayCancelados
+                  ? [
+                      {
+                        clave: 'cancelados',
+                        nombre: 'Cancelados',
+                        colorVar: 'var(--danger)',
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          ) : (
+            <EstadoVacio mensaje="Sin servicios completados en el periodo." />
+          )}
+        </PanelGrafico>
 
-        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-          <h4 className="font-display text-base font-semibold text-ink">
-            Distribución por estado
-          </h4>
-          <p className="mt-0.5 text-sm text-ink-2">
-            Total de solicitudes: {servicios.total}
-          </p>
-          <div className="mt-4">
-            {hayDona ? (
-              <GraficoDona filas={dona} />
-            ) : (
-              <EstadoVacio mensaje="Aún no hay servicios solicitados." />
-            )}
-          </div>
-        </section>
+        <PanelGrafico titulo="Distribución por estado" descripcion={`Total de solicitudes: ${servicios.total}`}>
+          {hayDona ? (
+            <GraficoDona filas={dona} />
+          ) : (
+            <EstadoVacio mensaje="Aún no hay servicios solicitados." />
+          )}
+        </PanelGrafico>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

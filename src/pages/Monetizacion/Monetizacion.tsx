@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   type ComponentType,
-  type ReactNode,
 } from 'react'
 import {
   listarTecnicosMonetizacion,
@@ -30,6 +29,7 @@ import { obtenerIniciales } from '../../components/navigation'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { SelectorRangoMeses } from '../../components/SelectorRangoMeses'
+import { PanelGrafico, TooltipGrafico } from '../../components/panel-grafico'
 import {
   diferenciaMeses,
   mesActualISO,
@@ -315,64 +315,6 @@ function TarjetaMetricaMini({ label, valor }: { label: string; valor: string }) 
       <p className="mt-2 font-display text-2xl font-semibold tabular-nums text-ink">
         {valor}
       </p>
-    </div>
-  )
-}
-
-function PanelGrafico({
-  titulo,
-  descripcion,
-  children,
-}: {
-  titulo: string
-  descripcion: string
-  children: ReactNode
-}) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-line">
-      <div className="border-b border-line px-4 py-3">
-        <h3 className="text-sm font-semibold text-ink">{titulo}</h3>
-        <p className="mt-0.5 text-xs text-ink-3">{descripcion}</p>
-      </div>
-      <div className="h-72 px-2 py-3">{children}</div>
-    </div>
-  )
-}
-
-interface FilaTooltipMonetizacion {
-  color: string
-  nombre: string
-  texto: string
-}
-
-function TooltipGrafico({
-  activo,
-  etiqueta,
-  filas,
-}: {
-  activo: boolean
-  etiqueta: string
-  filas: FilaTooltipMonetizacion[]
-}) {
-  if (!activo || filas.length === 0) return null
-  return (
-    <div className="min-w-40 rounded-md border border-line bg-surface px-3 py-2 text-xs shadow-md">
-      <p className="font-semibold text-ink">{etiqueta}</p>
-      <ul className="mt-1.5 space-y-1">
-        {filas.map((fila) => (
-          <li key={fila.nombre} className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5 text-ink-2">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: fila.color }}
-                aria-hidden="true"
-              />
-              {fila.nombre}
-            </span>
-            <span className="font-semibold tabular-nums text-ink">{fila.texto}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
