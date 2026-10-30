@@ -71,7 +71,7 @@
   --border: var(--line);
   --input: var(--line-strong);
   --ring: var(--primary);
-  --radius: 0.625rem;
+  --radius: 0.875rem;
 
   --sidebar: var(--surface);
   --sidebar-foreground: var(--ink-2);
@@ -140,9 +140,9 @@
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-xl: calc(var(--radius) * 1.2);
+  --radius-2xl: calc(var(--radius) * 1.4);
+  --radius-3xl: calc(var(--radius) * 1.8);
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Marca */
@@ -264,10 +264,92 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  button:not(:disabled), a, select {
+    cursor: pointer;
+  }
+  :where(a, button, input, select, textarea, [role="tab"]):focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+  }
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--ink);
+  }
+  .lucide {
+    stroke-width: 1.65;
+  }
   html,
   body,
   #root {
     min-height: 100%;
+  }
+}
+
+@layer components {
+  .metric-group {
+    @apply grid overflow-hidden rounded-2xl bg-surface;
+  }
+  .metric-group > * {
+    @apply relative min-w-0 px-6 py-7;
+  }
+  .metric-group > * + *::before {
+    content: '';
+    @apply absolute inset-x-6 top-0 h-px bg-line/60;
+  }
+  @media (min-width: 48rem) {
+    .metric-group-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .metric-group-3 > * + *::before {
+      @apply inset-x-auto inset-y-7 left-0 h-auto w-px;
+    }
+    .metric-group-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .metric-group-4 > :nth-child(2)::before {
+      @apply inset-x-auto inset-y-7 left-0 h-auto w-px;
+    }
+    .metric-group-4 > :nth-child(4)::after {
+      content: '';
+      @apply absolute inset-y-7 left-0 w-px bg-line/60;
+    }
+  }
+  @media (min-width: 80rem) {
+    .metric-group-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .metric-group-4 > * + *::before {
+      @apply inset-x-auto inset-y-7 left-0 h-auto w-px;
+    }
+    .metric-group-4 > :nth-child(4)::after {
+      content: none;
+    }
+  }
+  .filter-bar {
+    @apply space-y-4;
+  }
+  .filter-bar input,
+  .filter-bar select,
+  .filter-bar [data-slot="select-trigger"] {
+    @apply min-h-11 rounded-xl border-transparent bg-surface shadow-none;
+  }
+  .data-surface {
+    @apply overflow-hidden rounded-2xl bg-surface;
+  }
+  .data-surface th {
+    @apply bg-surface-2/50 py-3.5 text-xs font-medium normal-case tracking-normal text-ink-3;
+  }
+  .data-surface td {
+    @apply py-4;
+  }
+  .panel-collection {
+    @apply overflow-hidden rounded-2xl bg-surface;
+  }
+}
+
+@layer utilities {
+  .panel-collection > section {
+    @apply rounded-none bg-transparent;
   }
 }
 

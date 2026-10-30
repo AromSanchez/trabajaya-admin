@@ -22,7 +22,7 @@ export default function AppLayout() {
         }`}
       >
         <Header onAbrirMenuMovil={() => setMovilAbierto(true)} />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+        <main id="contenido" className="mx-auto w-full min-w-0 max-w-[1440px] flex-1 px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
           <Outlet />
         </main>
       </div>

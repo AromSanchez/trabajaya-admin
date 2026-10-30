@@ -7,6 +7,8 @@ import { AlertCircle, ArrowRight, Check, Eye, EyeOff, Loader2, Lock, Mail } from
 import { useAuth } from '../../hooks/useAuth'
 import { loginAdmin } from '../../services/auth'
 import EscenaLogin, { type EstadoLogin, type FocoLogin } from './EscenaLogin'
+import Brand from '../../components/Brand'
+import ThemeToggle from '../../components/ThemeToggle'
 
 function obtenerMensajeError(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -64,7 +66,8 @@ export default function Login() {
     <div className="flex min-h-screen bg-canvas">
       <EscenaLogin foco={foco} estado={estado} />
 
-      <main className="relative flex flex-1 items-center justify-center overflow-hidden px-4 py-12">
+      <main className="relative flex flex-1 items-center justify-center overflow-hidden px-6 py-20 sm:px-10">
+        <div className="absolute right-6 top-6"><ThemeToggle /></div>
         <div className="pointer-events-none absolute inset-0">
           <motion.div
             aria-hidden
@@ -85,17 +88,11 @@ export default function Login() {
             variants={entrada}
             className="mb-8 flex items-center gap-3 lg:hidden"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary-strong font-display text-sm font-bold text-white">
-              TY
-            </span>
-            <span className="font-display text-sm font-semibold text-ink">
-              TrabajaYa Admin
-            </span>
+            <Brand />
           </motion.div>
 
           <motion.div custom={0} variants={entrada}>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-transparent bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-3">
               Panel interno
             </span>
           </motion.div>
@@ -108,7 +105,7 @@ export default function Login() {
             Bienvenido de nuevo
           </motion.h1>
           <motion.p custom={2} variants={entrada} className="mt-2 text-sm text-ink-2">
-            Inicia sesión para administrar Trabajaya.
+            Tu comunidad, en buenas manos. Inicia sesión para continuar.
           </motion.p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
@@ -130,7 +127,7 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   onFocus={() => setFoco('email')}
                   onBlur={() => setFoco('ninguno')}
-                  className="w-full rounded-lg border border-line bg-surface py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary focus:ring-4 focus:ring-primary/15"
+                  className="w-full rounded-2xl bg-surface py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary focus:ring-4 focus:ring-primary/15"
                   placeholder="admin@trabajaya.com"
                 />
               </div>
@@ -154,7 +151,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setFoco('password')}
                   onBlur={() => setFoco('ninguno')}
-                  className="w-full rounded-lg border border-line bg-surface py-2.5 pl-10 pr-11 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary focus:ring-4 focus:ring-primary/15"
+                  className="w-full rounded-2xl bg-surface py-2.5 pl-10 pr-11 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary focus:ring-4 focus:ring-primary/15"
                   placeholder="••••••"
                 />
                 <button
@@ -190,7 +187,7 @@ export default function Login() {
               type="submit"
               disabled={enviando || exito}
               aria-busy={enviando}
-              className={`relative w-full overflow-hidden rounded-lg px-4 py-2.5 font-semibold text-white shadow-sm transition duration-[var(--duration-fast)] ease-[var(--ease)] disabled:cursor-not-allowed ${
+              className={`relative w-full overflow-hidden rounded-lg px-4 py-2.5 font-semibold text-white shadow-none transition duration-[var(--duration-fast)] ease-[var(--ease)] disabled:cursor-not-allowed ${
                 exito ? 'bg-success' : 'bg-primary-strong hover:bg-primary-hover active:translate-y-px'
               }`}
             >

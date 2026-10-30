@@ -1,3 +1,6 @@
+import MetricGroup from '../../components/MetricGroup'
+import { Link } from 'react-router-dom'
+import PageHeading from '../../components/PageHeading'
 import {
   useCallback,
   useEffect,
@@ -91,13 +94,13 @@ interface TipoInfo {
 const MODELO_INFO: Record<string, TipoInfo> = {
   creditos: {
     label: 'Créditos',
-    badge: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-    dot: 'bg-amber-500',
+    badge: 'bg-warning-soft text-warning-text',
+    dot: 'bg-warning',
   },
   mensualidad: {
     label: 'Mensualidad',
-    badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-    dot: 'bg-emerald-500',
+    badge: 'bg-success-soft text-success-text',
+    dot: 'bg-success',
   },
 }
 
@@ -112,28 +115,28 @@ const FILTROS_MODELO: { valor: string; label: string }[] = [
 const TRANSACCION_INFO: Record<TipoTransaccion, TipoInfo> = {
   compra_creditos: {
     label: 'Compra créditos',
-    badge: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-    dot: 'bg-amber-500',
+    badge: 'bg-warning-soft text-warning-text',
+    dot: 'bg-warning',
   },
   activacion_plan: {
     label: 'Activación plan',
-    badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-    dot: 'bg-emerald-500',
+    badge: 'bg-success-soft text-success-text',
+    dot: 'bg-success',
   },
   descuento_credito: {
     label: 'Descuento crédito',
-    badge: 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
-    dot: 'bg-rose-500',
+    badge: 'bg-danger-soft text-danger-text',
+    dot: 'bg-danger',
   },
   comision_servicio: {
     label: 'Comisión servicio',
-    badge: 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
-    dot: 'bg-violet-500',
+    badge: 'bg-revision/10 text-revision',
+    dot: 'bg-revision',
   },
   cambio_modelo: {
     label: 'Cambio modelo',
-    badge: 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
-    dot: 'bg-sky-500',
+    badge: 'bg-primary-soft text-link',
+    dot: 'bg-primary',
   },
 }
 
@@ -191,15 +194,15 @@ interface KpiProps {
   valor: string
   detalle: string
   icon: ComponentType<{ className?: string }>
-  iconClases: string
   cargando: boolean
 }
 
-function TarjetaKpi({ label, valor, detalle, icon: Icono, iconClases, cargando }: KpiProps) {
+function TarjetaKpi({ label, valor, detalle, icon: Icono, cargando }: KpiProps) {
   return (
-    <section className="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface p-5 shadow-sm">
+    <section className="min-w-0">
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-3">
+        <p className="flex items-center gap-2.5 text-sm font-medium text-ink-2">
+          <Icono className="h-4 w-4 shrink-0 text-link" />
           {label}
         </p>
         <p className="mt-1 truncate font-display text-2xl font-bold tabular-nums text-ink">
@@ -207,9 +210,6 @@ function TarjetaKpi({ label, valor, detalle, icon: Icono, iconClases, cargando }
         </p>
         <p className="mt-0.5 truncate text-xs text-ink-2">{detalle}</p>
       </div>
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${iconClases}`}>
-        <Icono className="h-5 w-5" />
-      </span>
     </section>
   )
 }
@@ -222,12 +222,12 @@ interface RangoVencimiento {
 function chipVencimiento(iso: string): RangoVencimiento {
   const dias = differenceInCalendarDays(new Date(iso), new Date())
   if (dias <= 0) {
-    return { chip: 'Vencido', clases: 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300' }
+    return { chip: 'Vencido', clases: 'bg-danger-soft text-danger-text' }
   }
   if (dias <= 7) {
-    return { chip: `Vence en ${dias} d`, clases: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' }
+    return { chip: `Vence en ${dias} d`, clases: 'bg-warning-soft text-warning-text' }
   }
-  return { chip: `Vence en ${dias} d`, clases: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' }
+  return { chip: `Vence en ${dias} d`, clases: 'bg-success-soft text-success-text' }
 }
 
 interface EstadoPaginacion {
@@ -280,7 +280,7 @@ function PieTabla({
 
 function SkeletonFilas({ columnas }: { columnas: number }) {
   return (
-    <tbody className="divide-y divide-line">
+    <tbody className="divide-y divide-line/50">
       {Array.from({ length: 5 }).map((_, indice) => (
         <tr key={indice} className="animate-pulse">
           {Array.from({ length: columnas }).map((__, col) => (
@@ -297,7 +297,7 @@ function SkeletonFilas({ columnas }: { columnas: number }) {
 function Vacio({ titulo, texto }: { titulo: string; texto: string }) {
   return (
     <div className="flex flex-col items-center px-6 py-14 text-center">
-      <span className="grid h-14 w-14 place-items-center rounded-lg bg-primary-soft text-link">
+      <span className="inline-flex shrink-0 items-center justify-center text-link">
         <IconCoins className="h-7 w-7" />
       </span>
       <h3 className="mt-4 font-display text-base font-semibold text-ink">{titulo}</h3>
@@ -308,8 +308,8 @@ function Vacio({ titulo, texto }: { titulo: string; texto: string }) {
 
 function TarjetaMetricaMini({ label, valor }: { label: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-line bg-surface-2 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-ink-3">
+    <div className="min-w-0">
+      <p className="text-sm font-medium text-ink-3">
         {label}
       </p>
       <p className="mt-2 font-display text-2xl font-semibold tabular-nums text-ink">
@@ -609,18 +609,18 @@ export default function Monetizacion() {
     : ''
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
+      <div className="flex flex-wrap items-start justify-between gap-3 [&>div]:mb-0">
+        <PageHeading titulo="Monetización" descripcion="Gestiona créditos, planes e ingresos de la plataforma." />
+        <Link to={`/analisis?desde=${mesInicio}&hasta=${mesFin}&metrica=ingresos&comparar=anterior`} className="rounded-lg px-3 py-2 text-sm font-semibold text-link transition hover:bg-primary-soft">Comparar ingresos →</Link>
+      </div>
       {/* KPIs */}
-      <section
-        aria-label="Resumen de monetización"
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
+      <MetricGroup columnas={4} etiqueta="Resumen de monetización">
         <TarjetaKpi
           label="Técnicos monetizados"
           valor={resumen ? `${resumen.tecnicos.conModelo}` : '—'}
           detalle={resumen ? `de ${resumen.tecnicos.total} técnicos activos` : '—'}
           icon={IconUsers}
-          iconClases="bg-primary-soft text-link"
           cargando={cargandoResumen}
         />
         <TarjetaKpi
@@ -628,7 +628,6 @@ export default function Monetizacion() {
           valor={resumen ? `${resumen.creditosEnCirculacion}` : '—'}
           detalle={resumen ? `${resumen.tecnicos.creditos} técnicos en modelo créditos` : '—'}
           icon={IconCoins}
-          iconClases="bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
           cargando={cargandoResumen}
         />
         <TarjetaKpi
@@ -636,7 +635,6 @@ export default function Monetizacion() {
           valor={resumen ? `${resumen.planesActivos}` : '—'}
           detalle={resumen ? `de ${resumen.tecnicos.mensualidad} mensualidades` : '—'}
           icon={IconCheckCircle}
-          iconClases="bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
           cargando={cargandoResumen}
         />
         <TarjetaKpi
@@ -644,16 +642,15 @@ export default function Monetizacion() {
           valor={resumen ? formatMoney(resumen.ingresos.mes) : '—'}
           detalle={resumen ? `Total histórico: ${formatMoney(resumen.ingresos.total)}` : '—'}
           icon={IconClock}
-          iconClases="bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
           cargando={cargandoResumen}
         />
-      </section>
+      </MetricGroup>
 
       {/* Pestañas */}
       <div
         role="tablist"
         aria-label="Vistas de monetización"
-        className="inline-flex rounded-lg border border-line bg-surface-2 p-1"
+        className="inline-flex rounded-2xl bg-surface-2 p-1"
       >
         <button
           role="tab"
@@ -661,7 +658,7 @@ export default function Monetizacion() {
           aria-selected={tab === 'tecnicos'}
           onClick={() => setTab('tecnicos')}
           className={`rounded-md px-4 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${tab === 'tecnicos'
-            ? 'bg-primary-strong text-white shadow-sm'
+            ? 'bg-primary-strong text-white shadow-none'
             : 'text-ink-2 hover:text-ink'
             }`}
         >
@@ -673,7 +670,7 @@ export default function Monetizacion() {
           aria-selected={tab === 'transacciones'}
           onClick={() => setTab('transacciones')}
           className={`rounded-md px-4 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${tab === 'transacciones'
-            ? 'bg-primary-strong text-white shadow-sm'
+            ? 'bg-primary-strong text-white shadow-none'
             : 'text-ink-2 hover:text-ink'
             }`}
         >
@@ -684,10 +681,10 @@ export default function Monetizacion() {
       {tab === 'tecnicos' && (
         <>
           {/* Filtros — fuera de la tabla */}
-          <section className="rounded-lg border border-line bg-surface p-4 shadow-sm">
+          <section className="filter-bar">
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div>
-                <label htmlFor="filtro-modelo" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
+                <label htmlFor="filtro-modelo" className="mb-1 block text-sm font-medium text-ink-3">
                   Modelo
                 </label>
                 <Select
@@ -710,7 +707,7 @@ export default function Monetizacion() {
                 </Select>
               </div>
               <div>
-                <label htmlFor="filtro-orden-monetizacion" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
+                <label htmlFor="filtro-orden-monetizacion" className="mb-1 block text-sm font-medium text-ink-3">
                   Ordenar por
                 </label>
                 <Select
@@ -733,7 +730,7 @@ export default function Monetizacion() {
                 </Select>
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-end gap-2 border-t border-line pt-3">
+            <div className="mt-3 flex items-center justify-end gap-2 pt-4">
               {hayFiltrosTecnicos && (
                 <Button
                   variant="ghost"
@@ -761,7 +758,7 @@ export default function Monetizacion() {
           </section>
 
           {/* Tabla de técnicos */}
-          <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
+          <section className="data-surface">
             <div
               className={`relative overflow-x-auto transition-opacity duration-[var(--duration)] ${cargandoTecnicos ? 'opacity-60' : 'opacity-100'
                 }`}
@@ -795,7 +792,7 @@ export default function Monetizacion() {
                     </tr>
                   </tbody>
                 ) : (
-                  <tbody className="divide-y divide-line">
+                  <tbody className="divide-y divide-line/50">
                     {tecnicos.map((t) => {
                       const m = t.monetizacion
                       const vence = m.planVenceAt ? chipVencimiento(m.planVenceAt) : null
@@ -832,7 +829,7 @@ export default function Monetizacion() {
                                   {m.creditosRestantes}
                                 </span>
                                 {m.creditosRestantes <= 3 && (
-                                  <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                                  <span className="inline-flex rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning-text">
                                     quedan pocos
                                   </span>
                                 )}
@@ -857,7 +854,7 @@ export default function Monetizacion() {
                           </td>
                           <td className="hidden px-5 py-4 text-ink-2 lg:table-cell">
                             {m.paqueteId ?? m.planId ? (
-                              <span className="inline-flex rounded-full border border-line bg-surface-2 px-2.5 py-0.5 text-xs font-medium">
+                              <span className="inline-flex rounded-full border border-transparent bg-surface-2 px-2.5 py-0.5 text-xs font-medium">
                                 {etiquetaReferencia(m.paqueteId ?? m.planId)}
                               </span>
                             ) : (
@@ -884,10 +881,10 @@ export default function Monetizacion() {
       {tab === 'transacciones' && (
         <>
           {/* Filtros — fuera de la tabla */}
-          <section className="rounded-lg border border-line bg-surface p-4 shadow-sm">
+          <section className="filter-bar">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label htmlFor="fx-tipo" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
+                <label htmlFor="fx-tipo" className="mb-1 block text-sm font-medium text-ink-3">
                   Tipo
                 </label>
                 <Select
@@ -913,7 +910,7 @@ export default function Monetizacion() {
               <div ref={dropdownRef} className="relative">
                 <label
                   htmlFor="fx-tecnico"
-                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3"
+                  className="mb-1 block text-sm font-medium text-ink-3"
                 >
                   Técnico
                 </label>
@@ -955,7 +952,7 @@ export default function Monetizacion() {
                 </div>
 
                 {dropdownAbierto && (
-                  <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-line bg-surface shadow-lg">
+                  <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-2xl bg-surface shadow-lg">
                     {cargandoListaTecnicos ? (
                       <p className="px-3 py-3 text-sm text-ink-3">
                         Cargando técnicos...
@@ -993,7 +990,7 @@ export default function Monetizacion() {
                 )}
               </div>
               <div>
-                <label htmlFor="fx-desde" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
+                <label htmlFor="fx-desde" className="mb-1 block text-sm font-medium text-ink-3">
                   Desde
                 </label>
                 <Input
@@ -1008,7 +1005,7 @@ export default function Monetizacion() {
                 />
               </div>
               <div>
-                <label htmlFor="fx-hasta" className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-3">
+                <label htmlFor="fx-hasta" className="mb-1 block text-sm font-medium text-ink-3">
                   Hasta
                 </label>
                 <Input
@@ -1023,7 +1020,7 @@ export default function Monetizacion() {
                 />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-end gap-2 border-t border-line pt-3">
+            <div className="mt-3 flex items-center justify-end gap-2 pt-4">
               {hayFiltrosTrans && (
                 <Button
                   variant="ghost"
@@ -1055,7 +1052,7 @@ export default function Monetizacion() {
           </section>
 
           {/* Tabla de transacciones */}
-          <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
+          <section className="data-surface">
             <div
               className={`relative overflow-x-auto transition-opacity duration-[var(--duration)] ${cargandoTrans ? 'opacity-60' : 'opacity-100'
                 }`}
@@ -1089,7 +1086,7 @@ export default function Monetizacion() {
                     </tr>
                   </tbody>
                 ) : (
-                  <tbody className="divide-y divide-line">
+                  <tbody className="divide-y divide-line/50">
                     {transacciones.map((tx) => (
                       <tr
                         key={tx.id}
@@ -1110,7 +1107,7 @@ export default function Monetizacion() {
                         </td>
                         <td className="hidden px-5 py-4 sm:table-cell">
                           {tx.monto !== null ? (
-                            <span className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                            <span className="font-semibold tabular-nums text-success-text">
                               {formatMoney(tx.monto)}
                             </span>
                           ) : (
@@ -1121,7 +1118,7 @@ export default function Monetizacion() {
                           {tx.creditos !== null ? (
                             <span
                               className={`font-semibold tabular-nums ${tx.creditos < 0
-                                ? 'text-rose-700 dark:text-rose-300'
+                                ? 'text-danger-text'
                                 : 'text-ink'
                                 }`}
                             >
@@ -1155,7 +1152,7 @@ export default function Monetizacion() {
       {/* Métricas de monetización */}
       <section
         aria-label="Métricas de monetización"
-        className="space-y-4 rounded-lg border border-line bg-surface p-5 shadow-sm"
+        className="space-y-5"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -1174,17 +1171,17 @@ export default function Monetizacion() {
         </div>
 
         {cargandoMetricas && !metricas ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricGroup columnas={4} etiqueta="Cargando indicadores de monetización">
             {Array.from({ length: 8 }).map((_, indice) => (
               <div
                 key={indice}
-                className="animate-pulse rounded-lg border border-line bg-surface-2 p-4"
+                className="animate-pulse"
               >
                 <span className="block h-3 w-24 bg-line" />
                 <span className="mt-3 block h-7 w-16 bg-line" />
               </div>
             ))}
-          </div>
+          </MetricGroup>
         ) : !metricas ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
             <p className="text-sm text-ink-3">
@@ -1205,7 +1202,7 @@ export default function Monetizacion() {
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricGroup columnas={4} etiqueta="Adopción de monetización">
               <TarjetaMetricaMini
                 label="Técnicos con créditos"
                 valor={String(metricas.resumen.totalConCreditos)}
@@ -1222,9 +1219,9 @@ export default function Monetizacion() {
                 label="Porcentaje monetizado"
                 valor={`${metricas.resumen.porcentajeMonetizados.toFixed(1)}%`}
               />
-            </div>
+            </MetricGroup>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricGroup columnas={4} etiqueta="Ingresos por fuente">
               <TarjetaMetricaMini
                 label="Ingresos por créditos"
                 valor={formatMoney(metricas.resumen.ingresosTotalesCreditos)}
@@ -1241,7 +1238,7 @@ export default function Monetizacion() {
                 label="Ingresos históricos"
                 valor={formatMoney(metricas.resumen.ingresosTotales)}
               />
-            </div>
+            </MetricGroup>
 
             <PanelGrafico
               titulo={monetizacionMensual ? 'Ingresos por mes' : 'Ingresos por semana'}

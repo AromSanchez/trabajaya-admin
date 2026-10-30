@@ -1,3 +1,4 @@
+import PageHeading from '../../components/PageHeading'
 import { Link, useNavigate } from 'react-router-dom'
 import { ESTADOS_VERIFICACION, OFICIOS } from '../../services/admin'
 import type {
@@ -72,8 +73,9 @@ export default function Tecnicos() {
   const mostrandoSkeleton = cargando && tecnicos.length === 0
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-lg border border-line bg-surface p-4 shadow-sm">
+    <div className="space-y-8">
+      <PageHeading titulo="Técnicos" descripcion="Conoce a los profesionales y acompaña su proceso de verificación." />
+      <section className="filter-bar" aria-label="Filtros de técnicos">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_13rem]">
           <div className="relative">
             <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
@@ -124,7 +126,7 @@ export default function Tecnicos() {
           </Select>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {FILTROS.map((filtro) => {
             const activo = estado === filtro.valor
             const clases =
@@ -132,13 +134,14 @@ export default function Tecnicos() {
                 ? `${ESTADOS_INFO[filtro.valor].badge} border border-transparent`
                 : activo
                   ? 'border border-transparent bg-primary-strong text-white'
-                  : 'border border-line bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink'
+                  : 'border border-transparent bg-surface-2 text-ink-2 hover:bg-primary-soft hover:text-link'
             return (
               <button
                 key={filtro.valor}
                 type="button"
                 onClick={() => cambiarEstado(filtro.valor)}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${clases}`}
+                aria-pressed={activo}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${clases}`}
               >
                 {filtro.label}
               </button>
@@ -172,7 +175,7 @@ export default function Tecnicos() {
       {error && (
         <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
+            <span className="inline-flex shrink-0 items-center justify-center text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -189,9 +192,9 @@ export default function Tecnicos() {
         </section>
       )}
 
-      <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
+      <section className="data-surface">
         {mostrandoSkeleton ? (
-          <div className="divide-y divide-line">
+          <div className="divide-y divide-line/50">
             {Array.from({ length: 6 }).map((_, indice) => (
               <div
                 key={indice}
@@ -208,7 +211,7 @@ export default function Tecnicos() {
           </div>
         ) : tecnicos.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-14 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-lg bg-primary-soft text-link">
+            <span className="inline-flex shrink-0 items-center justify-center text-link">
               <IconUsers className="h-7 w-7" />
             </span>
             <h3 className="mt-4 font-display text-base font-semibold text-ink">
@@ -260,7 +263,7 @@ export default function Tecnicos() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-line/50">
                 {tecnicos.map((tecnico) => {
                   const info = ESTADOS_INFO[tecnico.estadoVerificacion]
                   return (
@@ -297,10 +300,10 @@ export default function Tecnicos() {
                       </td>
                       <td className="px-5 py-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium ${info.badge}`}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${info.badge}`}
                         >
                           <span
-                            className={`h-1.5 w-1.5 ${info.dot}`}
+                            className={`h-1.5 w-1.5 rounded-full ${info.dot}`}
                             aria-hidden="true"
                           />
                           {info.label}

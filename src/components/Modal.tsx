@@ -40,7 +40,7 @@ export default function Modal({
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-lg ${
+        className={`relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-surface shadow-lg ${
           ancho === 'lg' ? 'max-w-3xl' : 'max-w-lg'
         }`}
       >

@@ -9,6 +9,7 @@ import Reportes from './pages/Reportes/Reportes'
 import ReporteDetalle from './pages/ReporteDetalle/ReporteDetalle'
 import CancelacionesTardias from './pages/CancelacionesTardias/CancelacionesTardias'
 import Monetizacion from './pages/Monetizacion/Monetizacion'
+import Analisis from './pages/Analisis/Analisis'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/analisis" element={<Analisis />} />
           <Route path="/tecnicos" element={<Tecnicos />} />
           <Route path="/tecnicos/:id" element={<TecnicoDetalle />} />
           <Route path="/reportes" element={<Reportes />} />

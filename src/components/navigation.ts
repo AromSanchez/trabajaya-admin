@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { ChartNoAxesCombined } from 'lucide-react'
 import {
   IconClock,
   IconCoins,
@@ -15,6 +16,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: IconDashboard },
+  { to: '/analisis', label: 'Análisis histórico', icon: ChartNoAxesCombined },
   { to: '/tecnicos', label: 'Técnicos', icon: IconUsers },
   { to: '/reportes', label: 'Reportes', icon: IconFlag },
   {

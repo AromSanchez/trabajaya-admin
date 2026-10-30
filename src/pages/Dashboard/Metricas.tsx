@@ -1,3 +1,4 @@
+import MetricGroup from '../../components/MetricGroup'
 import { useState } from 'react'
 import type { ComponentType } from 'react'
 import {
@@ -86,8 +87,8 @@ function DeltaMes({
   const favorable = invertir ? cambio <= 0 : cambio >= 0
   const signo = cambio >= 0 ? '+' : ''
   return (
-    <div className="rounded-lg bg-surface-2 px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+    <div className="min-w-0 py-2">
+      <p className="text-sm font-medium text-ink-3">
         {etiqueta}
       </p>
       <p className="mt-1 font-display text-xl font-semibold tabular-nums text-ink">
@@ -334,16 +335,12 @@ function TarjetaMetrica({
   icono?: ComponentType<{ className?: string }>
 }) {
   return (
-    <article className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+    <article className="min-w-0">
+      <div className="flex items-center gap-2.5">
+        {Icon && <Icon className="h-4 w-4 shrink-0 text-link" />}
+        <p className="text-sm font-medium text-ink-2">
           {titulo}
         </p>
-        {Icon && (
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary-soft text-link">
-            <Icon className="h-4.5 w-4.5" />
-          </span>
-        )}
       </div>
       <p className="mt-3 font-display text-3xl font-semibold leading-none tabular-nums text-ink">
         {valor}
@@ -360,7 +357,7 @@ function TarjetaMetrica({
           {delta.direccion === 'arriba' ? '↑' : '↓'} {delta.texto}
         </p>
       )}
-      <p className="mt-2 text-xs leading-relaxed text-ink-3">{descripcion}</p>
+      <p className="mt-2 max-w-sm text-xs leading-relaxed text-ink-2">{descripcion}</p>
     </article>
   )
 }
@@ -391,12 +388,12 @@ function CabeceraSubseccion({
   descripcion: string
 }) {
   return (
-    <header className="mt-10 flex items-start gap-4 border-t border-line pt-6">
+    <header className="mt-12 flex items-start gap-4 pt-2">
       <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-soft font-display text-sm font-bold text-link"
+        className="mt-0.5 shrink-0 font-display text-sm font-medium tabular-nums text-link"
         aria-hidden="true"
       >
-        {numero}
+        {numero.padStart(2, '0')}
       </span>
       <div>
         <h3 className="font-display text-xl font-semibold tracking-tight text-ink">
@@ -482,7 +479,7 @@ function RegistrosVerificacionesMetricas({
       descripcion={descripcion}
       className="xl:col-span-2"
       extra={
-        <div className="inline-flex rounded-md border border-line p-0.5">
+        <div className="inline-flex rounded-lg bg-surface-2 p-1">
           {(['grafico', 'tabla'] as const).map((opcion) => (
             <button
               key={opcion}
@@ -535,7 +532,7 @@ function RegistrosVerificacionesMetricas({
                 <th className="py-2 text-right font-medium">Verificados</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody className="divide-y divide-line/50">
               {datos.map((punto) => (
                 <tr key={punto.semana}>
                   <td className="py-2.5 pr-4 text-ink-2">{punto.semana}</td>
@@ -603,7 +600,7 @@ function SubseccionTecnicos({
   const serieMensual = metricas.seriesMensuales?.serie
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 xl:grid-cols-3">
         <RegistrosVerificacionesMetricas
           metricas={metricas}
@@ -612,7 +609,7 @@ function SubseccionTecnicos({
           etiquetaRango={etiquetaRango}
         />
 
-        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <section className="rounded-2xl bg-surface p-5 shadow-none">
           <h4 className="font-display text-base font-semibold text-ink">
             Tiempo promedio de verificación
           </h4>
@@ -650,7 +647,7 @@ function SubseccionTecnicos({
         </section>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <PanelGrafico titulo="Cancelaciones tardías" descripcion={descripcionCancela} alto="lg">
           {hayCancela ? (
             <GraficoLineas
@@ -671,7 +668,7 @@ function SubseccionTecnicos({
         </PanelGrafico>
 
         {serieMensual && serieMensual.length >= 2 && (
-          <div className="rounded-lg border border-line bg-surface p-5">
+          <div className="rounded-2xl bg-surface p-5">
             <div>
               <h3 className="text-sm font-semibold text-ink">
                 Comparación vs mes anterior
@@ -681,7 +678,7 @@ function SubseccionTecnicos({
                 {nombreMesCorto(serieMensual[serieMensual.length - 2].mes)}
               </p>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-3">
               <DeltaMes
                 etiqueta="Registrados"
                 actual={serieMensual[serieMensual.length - 1].registros}
@@ -759,7 +756,7 @@ function SubseccionServicios({
   const hayDona = servicios.porEstado.some((estado) => estado.total > 0)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 xl:grid-cols-2">
         <PanelGrafico titulo="Servicios completados" descripcion={descripcionCompletadas}>
           {hayCompletadas || hayCancelados ? (
@@ -805,7 +802,7 @@ function SubseccionServicios({
         </PanelGrafico>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <MetricGroup etiqueta="Indicadores de servicios y clientes">
         <TarjetaMetrica
           titulo="Tasa de conversión"
           valor={`${servicios.tasaConversionCompletado}%`}
@@ -826,15 +823,15 @@ function SubseccionServicios({
           }.`}
           icono={IconFlag}
         />
-      </div>
+      </MetricGroup>
       {seriesMensuales && seriesMensuales.serie.length >= 2 && (
-        <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <div className="rounded-2xl bg-surface p-5 shadow-none">
           <h4 className="font-display text-base font-semibold text-ink">Comparación vs mes anterior</h4>
           <p className="mt-0.5 text-sm text-ink-2">
             {nombreMesCorto(seriesMensuales.serie[seriesMensuales.serie.length - 2].mes)} vs{' '}
             {nombreMesCorto(seriesMensuales.serie[seriesMensuales.serie.length - 1].mes)}
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2 xl:grid-cols-4">
             <DeltaMes etiqueta="Solicitudes" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].servicios)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].servicios)} />
             <DeltaMes etiqueta="Completados" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].completados)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].completados)} />
             <DeltaMes etiqueta="Conversión" actual={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 1].tasaConversion)} anterior={aNumero(seriesMensuales.serie[seriesMensuales.serie.length - 2].tasaConversion)} sufijo=" pts" />
@@ -887,9 +884,9 @@ export function SubseccionMonetizacion({
   const totalMonetizados = resumen.totalConCreditos + resumen.totalConMensualidad
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 xl:grid-cols-2">
-        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <section className="rounded-2xl bg-surface p-5 shadow-none">
           <h4 className="font-display text-base font-semibold text-ink">
             Ingresos por semana
           </h4>
@@ -942,7 +939,7 @@ export function SubseccionMonetizacion({
           </div>
         </section>
 
-        <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <section className="rounded-2xl bg-surface p-5 shadow-none">
           <h4 className="font-display text-base font-semibold text-ink">
             Técnicos por modelo
           </h4>
@@ -984,7 +981,7 @@ export function SubseccionMonetizacion({
         </section>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <MetricGroup etiqueta="Indicadores de monetización">
         <TarjetaMetrica
           titulo="Total monetizados"
           valor={String(totalMonetizados)}
@@ -1013,7 +1010,7 @@ export function SubseccionMonetizacion({
           )} · comisiones ${formatearDinero(resumen.ingresosTotalesComisiones)}.`}
           icono={IconCoins}
         />
-      </div>
+      </MetricGroup>
     </div>
   )
 }
@@ -1030,9 +1027,9 @@ export function ErrorMonetizacion({
   onReintentar: () => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
+    <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface p-5 shadow-none">
       <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger-soft text-danger-text">
+        <span className="inline-flex shrink-0 items-center justify-center text-danger-text">
           <IconAlertTriangle className="h-4 w-4" />
         </span>
         <div>
@@ -1045,7 +1042,7 @@ export function ErrorMonetizacion({
       <button
         type="button"
         onClick={onReintentar}
-        className="inline-flex shrink-0 items-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-sm transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+        className="inline-flex shrink-0 items-center gap-2 rounded-md border border-transparent bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-none transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
       >
         <IconRefresh className="h-4 w-4" />
         Reintentar
@@ -1076,7 +1073,7 @@ export function SeccionMetricas({
 
   return (
     <section aria-labelledby="titulo-metricas" className="pt-3">
-      <header className="flex flex-col gap-4 border-b border-line-strong pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-link">
             Evolución de negocio

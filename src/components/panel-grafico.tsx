@@ -67,15 +67,15 @@ export function PanelGrafico({
   className?: string
 }) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-line ${className}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
+    <div className={`min-w-0 overflow-hidden rounded-2xl bg-surface ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-6 pb-3">
         <div>
-          <h3 className="text-sm font-semibold text-ink">{titulo}</h3>
+          <h3 className="font-display text-sm font-semibold text-ink">{titulo}</h3>
           <p className="mt-0.5 text-xs text-ink-3">{descripcion}</p>
         </div>
         {extra}
       </div>
-      <div className={`${ALTO_PANELES[alto]} px-2 py-3`}>{children}</div>
+      <div className={`${ALTO_PANELES[alto]} px-4 pt-2 pb-5`}>{children}</div>
     </div>
   )
 }

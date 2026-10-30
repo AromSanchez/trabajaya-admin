@@ -1,3 +1,4 @@
+import MetricGroup from '../../components/MetricGroup'
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ComponentType } from 'react'
@@ -73,39 +74,29 @@ function acumular(valores: number[]): number[] {
 type Tono = 'positivo' | 'negativo' | 'neutral'
 
 const TONO_CLASES: Record<Tono, string> = {
-  positivo: 'bg-success-soft text-success-text',
-  negativo: 'bg-danger-soft text-danger-text',
-  neutral: 'bg-surface-2 text-ink-3',
+  positivo: 'text-success-text',
+  negativo: 'text-danger-text',
+  neutral: 'text-ink-3',
 }
 
 const ACENTO_CLASES: Record<
   'primary' | 'success' | 'warning' | 'danger' | 'revision',
-  { icono: string; spark: string; bar: string }
+  { spark: string }
 > = {
   primary: {
-    icono: 'bg-primary-soft text-link',
     spark: 'text-primary',
-    bar: 'bg-primary',
   },
   success: {
-    icono: 'bg-success-soft text-success-text',
     spark: 'text-success',
-    bar: 'bg-success',
   },
   warning: {
-    icono: 'bg-warning-soft text-warning-text',
     spark: 'text-warning',
-    bar: 'bg-warning',
   },
   danger: {
-    icono: 'bg-danger-soft text-danger-text',
     spark: 'text-danger',
-    bar: 'bg-danger',
   },
   revision: {
-    icono: 'bg-revision/10 text-revision',
     spark: 'text-revision',
-    bar: 'bg-revision',
   },
 }
 
@@ -131,30 +122,21 @@ function TarjetaKPI({
   const estilo = ACENTO_CLASES[acento]
 
   return (
-    <article className="group relative overflow-hidden rounded-xl border border-line bg-surface p-5 shadow-sm transition duration-[var(--duration)] ease-[var(--ease)] hover:-translate-y-0.5 hover:shadow-md">
-      <span
-        className={`absolute inset-x-0 top-0 h-1 ${estilo.bar}`}
-        aria-hidden="true"
-      />
-
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+    <article className="relative min-w-0">
+      <div className="flex items-center gap-2.5">
+        <Icon className="h-4 w-4 shrink-0 text-link" />
+        <p className="text-sm font-medium text-ink-2">
           {titulo}
         </p>
-        <span
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${estilo.icono}`}
-        >
-          <Icon className="h-5 w-5" />
-        </span>
       </div>
 
-      <p className="mt-4 font-display text-4xl font-semibold leading-none tracking-tight tabular-nums text-ink">
+      <p className="mt-3 font-display text-4xl font-semibold leading-none tracking-tight tabular-nums text-ink">
         {valor}
       </p>
 
       <div className="mt-4 flex items-end justify-between gap-3">
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${TONO_CLASES[delta.tono]}`}
+          className={`inline-flex items-center text-xs font-medium ${TONO_CLASES[delta.tono]}`}
         >
           {delta.texto}
         </span>
@@ -181,7 +163,7 @@ function TarjetaKPI({
 
 function SkeletonDashboard() {
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
       <div className="h-44 animate-pulse rounded-xl bg-line" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, indice) => (
@@ -209,7 +191,12 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
   const siguiente = metricas.colaRevision.tecnicos[0]
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary-soft via-primary-soft/50 to-surface p-6 shadow-sm sm:p-8">
+    <section className="relative overflow-hidden rounded-3xl bg-primary-soft/55 p-6 sm:p-8">
+      <div className="pointer-events-none absolute right-10 top-1/2 hidden -translate-y-1/2 items-center justify-center lg:flex" aria-hidden="true">
+        <span className="absolute size-48 rounded-full border border-primary/10" />
+        <span className="absolute size-60 rounded-full border border-primary/10" />
+        <IconCheckCircle className="size-28 -rotate-12 text-primary/20" />
+      </div>
       <span
         className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
         aria-hidden="true"
@@ -218,13 +205,13 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
         <p className="inline-flex items-center gap-2 rounded-full bg-primary-strong/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-link">
           Prioridad de hoy
         </p>
-        <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-          {tecnicosEnEspera} técnico{tecnicosEnEspera === 1 ? '' : 's'} espera
-          {tecnicosEnEspera === 1 ? '' : 'n'} tu revisión
+        <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-3xl">
+          {tecnicosEnEspera === 0 ? 'Todo al día. Sigamos creciendo.' : <>{tecnicosEnEspera} técnico{tecnicosEnEspera === 1 ? '' : 's'} espera{tecnicosEnEspera === 1 ? '' : 'n'} tu revisión.</>}
         </h2>
         <p className="mt-3 text-sm text-ink-2 sm:text-base">
-          El más antiguo lleva {masAntiguoDias}{' '}
-          {masAntiguoDias === 1 ? 'día' : 'días'} en espera. Con{' '}
+          {tecnicosEnEspera > 0 ? <>El más antiguo lleva {masAntiguoDias}{' '}
+          {masAntiguoDias === 1 ? 'día' : 'días'} en espera. </> : 'No hay verificaciones pendientes. '}
+          Con{' '}
           {verificados.nuevosSemana}{' '}
           {verificados.nuevosSemana === 1
             ? 'verificación completada'
@@ -236,7 +223,7 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
           {siguiente ? (
             <Link
               to={`/tecnicos/${siguiente.id}`}
-              className="inline-flex items-center gap-2 rounded-md bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-hover active:translate-y-px"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-strong px-5 py-3 text-sm font-semibold text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-hover active:translate-y-px"
             >
               Revisar siguiente
               <IconChevronRight className="h-4 w-4" />
@@ -249,7 +236,7 @@ function PrioridadHoy({ metricas }: { metricas: MetricasDashboard }) {
           )}
           <Link
             to="/tecnicos"
-            className="inline-flex items-center gap-2 rounded-md border border-line-strong bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-full bg-surface/70 px-5 py-3 text-sm font-semibold text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             Ver cola completa
           </Link>
@@ -366,7 +353,7 @@ function ColaRevision({ metricas }: { metricas: MetricasDashboard }) {
       accion={
         <Link
           to="/tecnicos"
-          className="inline-flex items-center gap-1 rounded-md bg-primary-soft px-3 py-1.5 text-sm font-semibold text-link transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary/15"
+          className="inline-flex items-center gap-1 rounded-md px-1 py-1.5 text-sm font-semibold text-link transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary/15"
         >
           Ver todos
         </Link>
@@ -377,7 +364,7 @@ function ColaRevision({ metricas }: { metricas: MetricasDashboard }) {
           No hay técnicos esperando revisión.
         </p>
       ) : (
-        <ul className="divide-y divide-line">
+        <ul className="divide-y divide-line/50">
           {tecnicos.map((item) => (
             <li
               key={item.id}
@@ -400,7 +387,7 @@ function ColaRevision({ metricas }: { metricas: MetricasDashboard }) {
               </span>
               <Link
                 to={`/tecnicos/${item.id}`}
-                className="shrink-0 rounded-md bg-primary-soft px-3 py-1.5 text-sm font-semibold text-link transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary/15"
+                className="shrink-0 rounded-md px-2 py-1.5 text-sm font-semibold text-link transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary/15"
               >
                 Revisar
               </Link>
@@ -464,7 +451,7 @@ function TiempoVerificacion({ metricas }: { metricas: MetricasDashboard }) {
             style={{ width: `${posicion}%` }}
           />
           <span
-            className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-primary shadow-sm"
+            className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-primary shadow-none"
             style={{ left: `${posicion}%` }}
             aria-hidden="true"
           />
@@ -511,7 +498,7 @@ function BloqueError({ error, onReintentar }: { error: string; onReintentar: () 
       className="flex flex-col items-start justify-between gap-4 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center"
     >
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
+        <span className="inline-flex shrink-0 items-center justify-center text-danger-text">
           <IconAlertTriangle className="h-5 w-5" />
         </span>
         <div>
@@ -524,7 +511,7 @@ function BloqueError({ error, onReintentar }: { error: string; onReintentar: () 
       <button
         type="button"
         onClick={onReintentar}
-        className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-sm transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+        className="inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-none transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
       >
         <IconRefresh className="h-4 w-4" />
         Reintentar
@@ -555,31 +542,34 @@ export default function Dashboard() {
   const encabezado = (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+        <p className="text-sm font-medium text-ink-3">
           Panel de control · <span className="capitalize">{fechaHoy()}</span>
         </p>
-        <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">
           Hola, {usuario?.nombre ?? 'Administrador'}
-        </h2>
+        </h1>
         <p className="mt-1 text-sm text-ink-2">
           Estado general de la plataforma y verificación de técnicos.
         </p>
       </div>
+      <div className="flex flex-wrap items-center gap-2">
+      <Link to={`/analisis?desde=${mesInicio}&hasta=${mesFin}&comparar=anterior`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-link transition hover:bg-primary-soft">Comparar periodos<IconChevronRight className="size-4" /></Link>
       <button
         type="button"
         onClick={recargar}
         disabled={cargando}
-        className="inline-flex items-center justify-center gap-2 self-start rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-sm transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
+        className="inline-flex items-center justify-center gap-2 self-start rounded-md border border-transparent bg-surface px-3.5 py-2 text-sm font-semibold text-ink shadow-none transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
       >
         <IconRefresh className={`h-4 w-4 ${cargando ? 'animate-spin' : ''}`} />
         Actualizar
       </button>
+      </div>
     </header>
   )
 
   if (cargando && !metricas) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-7">
         {encabezado}
         <SkeletonDashboard />
       </div>
@@ -588,7 +578,7 @@ export default function Dashboard() {
 
   if ((error && !metricas) || !metricas) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-7">
         {encabezado}
         <BloqueError
           error={error ?? 'Ocurrió un error inesperado.'}
@@ -615,7 +605,7 @@ export default function Dashboard() {
       : 0
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
       {encabezado}
 
       {error && (
@@ -625,10 +615,7 @@ export default function Dashboard() {
       <PrioridadHoy metricas={metricas} />
 
       {/* KPIs */}
-      <section
-        aria-label="Métricas principales"
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
+      <MetricGroup columnas={4} etiqueta="Métricas principales">
         <TarjetaKPI
           titulo="Reportes abiertos"
           valor={t.reportesAbiertos.total}
@@ -697,10 +684,10 @@ export default function Dashboard() {
           }}
           spark={backlog}
         />
-      </section>
+      </MetricGroup>
 
       {/* Distribución de técnicos e incidencias */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="panel-collection grid gap-x-5 gap-y-2 sm:grid-cols-2">
         <TecnicosPorEstado metricas={metricas} />
 
         <Panel
@@ -771,7 +758,7 @@ export default function Dashboard() {
       </section>
 
       {/* Cola + tiempo */}
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="panel-collection grid gap-4 xl:grid-cols-3">
         <ColaRevision metricas={metricas} />
         <TiempoVerificacion metricas={metricas} />
       </section>

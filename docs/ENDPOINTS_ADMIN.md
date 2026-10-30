@@ -24,6 +24,7 @@ Devuelve en una sola llamada todos los datos del panel de control: tarjetas supe
 Auth: sí — `Authorization: Bearer <token>` (rol `admin`)
 Query (opcional): `semanas_registros` (default 12, 1–52) · `semanas_cancelaciones` (default 8, 1–52) · `dias_reportes` (default 30, 1–365) · `limit_cola` (default 5, 1–50)
 Ejemplo: `GET /admin/metricas/dashboard?semanas_registros=12&semanas_cancelaciones=8&dias_reportes=30&limit_cola=5`
+Historial mensual (contrato ya usado por el panel, revisado en `metricas.schemas.js` y `metricas.service.js` del backend local): `mes=YYYY-MM` indica el último mes; `meses=N` admite 2–12 meses, incluidos ambos extremos. Para consultar un solo mes, pedir 2 y seleccionar el mes solicitado. Se pueden consultar periodos anteriores al año actual. Al enviar estos parámetros se añade `seriesMensuales: { meses, serie }`; cada fila incluye `mes`, `registros`, `verificados`, `servicios`, `completados`, `cancelados`, `expirados`, `rechazados`, `tasaConversion`, `cancelacionesTardias`, `clientesNuevos`, `resenas` y `calificacionPromedio`. `periodo` indica el mes seleccionado y el anterior. La serie usa meses UTC; registros/clientes/reseñas se agrupan por creación, verificados por `verificadoAt`, cancelaciones tardías por `canceladoAt`, y servicios por fecha de creación y estado actual. No son snapshots inmutables: el estado actual de un servicio puede actualizar un conteo histórico.
 Respuesta 200:
 { "data": {
   "generadoEn": "2026-10-18T20:56:20.300Z",
@@ -94,6 +95,7 @@ Notas: no hay metas configuradas todavía, así que no se devuelve `meta` ni `de
 Estado: listo
 
 ### GET /admin/metricas/monetizacion
+Historial mensual (contrato existente revisado en el backend local): acepta también `mes=YYYY-MM` y `meses=2…12`, con el mismo significado que Dashboard. Devuelve `ingresosMensuales: { meses, serie: [{ mes, ingresosCreditosMes, ingresosMensualidadMes, ingresosComisionesMes, ingresosTotalMes }] }` y `modelosMensuales: { meses, serie: [{ mes, creditos, mensualidad }] }`. Usar estas series para comparar ingresos por periodo; `resumen` sigue siendo histórico global. Verificación de esta sesión: las llamadas reales de prueba devolvieron 401 con ambas credenciales documentadas; no se ha validado de nuevo una respuesta 200 en vivo ni se ha modificado el backend.
 Series temporales semanales de monetización para graficar evolución: modelos activos, ingresos por fuente y adopción de los verificados, más un resumen de totales actuales.
 Auth: sí — `Authorization: Bearer <token>` (rol `admin`)
 Query (opcional): `semanas` (default 8, 1–52)

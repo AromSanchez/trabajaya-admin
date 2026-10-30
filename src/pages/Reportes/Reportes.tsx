@@ -1,3 +1,4 @@
+import PageHeading from '../../components/PageHeading'
 import { Link, useNavigate } from 'react-router-dom'
 import Badge from '../../components/Badge'
 import {
@@ -48,8 +49,9 @@ export default function Reportes() {
     paginacion && paginacion.total_paginas > 0 ? paginacion.total_paginas : 1
 
   return (
-    <div className="space-y-5">
-      <section className="space-y-4 rounded-lg border border-line bg-surface p-5 shadow-sm">
+    <div className="space-y-8">
+      <PageHeading titulo="Reportes" descripcion="Revisa cada caso y ayuda a mantener una comunidad de confianza." />
+      <section className="filter-bar" aria-label="Filtros de reportes">
         <div className="flex flex-wrap items-center gap-2">
           {ESTADOS_CHIPS.map((chip) => {
             const activo = filtros.estado === chip.valor
@@ -58,13 +60,14 @@ export default function Reportes() {
                 ? `${ESTADOS_REPORTE_INFO[chip.valor as EstadoReporte].badge} border border-transparent`
                 : activo
                   ? 'border border-transparent bg-primary-strong text-white'
-                  : 'border border-line bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink'
+                  : 'border border-transparent bg-surface-2 text-ink-2 hover:bg-primary-soft hover:text-link'
             return (
               <button
                 key={chip.valor}
                 type="button"
                 onClick={() => cambiarFiltros({ estado: chip.valor })}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${clases}`}
+                aria-pressed={activo}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition duration-[var(--duration-fast)] ease-[var(--ease)] ${clases}`}
               >
                 {chip.label}
               </button>
@@ -74,14 +77,14 @@ export default function Reportes() {
             type="button"
             onClick={recargar}
             aria-label="Recargar"
-            className="ml-auto inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+            className="ml-auto inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
           >
             <IconRefresh className="h-4 w-4" />
             <span className="hidden sm:inline">Recargar</span>
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-3 border-t border-line pt-4">
+        <div className="flex flex-wrap gap-4">
           <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wider text-ink-3">
             Tipo de objetivo
             <select
@@ -92,7 +95,7 @@ export default function Reportes() {
                     .value as FiltrosUI['tipoObjetivo'],
                 })
               }
-              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
+              className="rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
             >
               <option value="todos">Todos</option>
               {TIPOS_OBJETIVO.map((tipo) => (
@@ -111,7 +114,7 @@ export default function Reportes() {
                   categoria: evento.target.value as FiltrosUI['categoria'],
                 })
               }
-              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
+              className="rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] focus:border-primary"
             >
               <option value="todas">Todas</option>
               {CATEGORIAS_REPORTE.map((categoria) => (
@@ -127,7 +130,7 @@ export default function Reportes() {
       {error && (
         <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
+            <span className="inline-flex shrink-0 items-center justify-center text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -140,7 +143,7 @@ export default function Reportes() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -148,9 +151,9 @@ export default function Reportes() {
         </section>
       )}
 
-      <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
+      <section className="data-surface">
         {cargando ? (
-          <div className="divide-y divide-line">
+          <div className="divide-y divide-line/50">
             {Array.from({ length: 5 }).map((_, indice) => (
               <div
                 key={indice}
@@ -166,7 +169,7 @@ export default function Reportes() {
           </div>
         ) : reportes.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-14 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-lg bg-primary-soft text-link">
+            <span className="inline-flex shrink-0 items-center justify-center text-link">
               <IconFlag className="h-7 w-7" />
             </span>
             <h3 className="mt-4 font-display text-base font-semibold text-ink">
@@ -197,7 +200,7 @@ export default function Reportes() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-line/50">
                 {reportes.map((reporte) => (
                   <tr
                     key={reporte.id}
@@ -258,7 +261,7 @@ export default function Reportes() {
               type="button"
               onClick={() => irAPagina(pagina - 1)}
               disabled={pagina <= 1}
-              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
+              className="rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
             >
               Anterior
             </button>
@@ -269,7 +272,7 @@ export default function Reportes() {
               type="button"
               onClick={() => irAPagina(pagina + 1)}
               disabled={pagina >= totalPaginas}
-              className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
+              className="rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface"
             >
               Siguiente
             </button>

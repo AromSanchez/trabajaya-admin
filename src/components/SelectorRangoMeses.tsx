@@ -7,7 +7,7 @@ import { diferenciaMeses, mesActualISO, restarMeses } from '../lib/periodo'
 const LIMITE_MESES = 12
 
 const claseInput =
-  'rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink shadow-sm ' +
+  'rounded-lg border border-transparent bg-surface px-3 py-2 text-sm text-ink ' +
   'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 
 const claseEtiqueta = 'text-xs font-semibold uppercase tracking-wider text-ink-3'

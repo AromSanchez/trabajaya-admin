@@ -46,8 +46,8 @@ export default function Header({ onAbrirMenuMovil }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-surface/90 shadow-xs backdrop-blur"> 
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-20 bg-canvas/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 w-full max-w-[1440px] items-center gap-3 px-5 sm:px-8 lg:px-10">
         <button
           type="button"
           onClick={onAbrirMenuMovil}
@@ -58,10 +58,7 @@ export default function Header({ onAbrirMenuMovil }: HeaderProps) {
         </button>
 
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-lg font-semibold text-ink">{titulo}</h1>
-          <p className="hidden truncate text-xs text-ink-3 sm:block">
-            Panel de administración de TrabajaYa
-          </p>
+          <p className="flex items-center gap-2 truncate text-sm text-ink-3"><span className="hidden sm:inline">Administración <span className="mx-2 text-line-strong">/</span></span><span className="font-medium text-ink">{titulo}</span></p>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
@@ -73,7 +70,8 @@ export default function Header({ onAbrirMenuMovil }: HeaderProps) {
               onClick={() => setMenuAbierto((valor) => !valor)}
               aria-haspopup="menu"
               aria-expanded={menuAbierto}
-              className="flex items-center gap-2 rounded-md p-1 pr-2 transition duration-[var(--duration)] ease-[var(--ease)] hover:bg-surface-2"
+              aria-label="Menú de cuenta"
+              className="flex items-center gap-2 rounded-full bg-surface p-1.5 pr-3 transition duration-[var(--duration)] ease-[var(--ease)] hover:bg-primary-soft"
             >
               <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-strong text-xs font-semibold text-white">
                 {iniciales}

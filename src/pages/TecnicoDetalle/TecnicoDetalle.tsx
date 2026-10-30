@@ -147,7 +147,7 @@ function FormAccion({
           value={texto}
           onChange={(evento) => setTexto(evento.target.value)}
           placeholder={config.placeholder}
-          className="w-full resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+          className="w-full resize-none rounded-xl border border-transparent bg-surface-2 px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
         />
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
@@ -156,7 +156,7 @@ function FormAccion({
           type="button"
           onClick={onCerrar}
           disabled={enviando}
-          className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:opacity-50"
+          className="rounded-md border border-transparent bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink disabled:opacity-50"
         >
           Cancelar
         </button>
@@ -178,9 +178,9 @@ function FormAccion({
 
 function EsqueletoDetalle() {
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
       <div className="h-8 w-40 animate-pulse bg-line" />
-      <div className="animate-pulse rounded-lg rounded-lg border border-line bg-surface p-6 shadow-sm shadow-sm">
+      <div className="animate-pulse rounded-lg rounded-2xl bg-surface p-6 shadow-none shadow-none">
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 bg-line" />
           <div className="space-y-2">
@@ -194,7 +194,7 @@ function EsqueletoDetalle() {
           ))}
         </div>
       </div>
-      <div className="h-48 animate-pulse rounded-lg border border-line bg-surface" />
+      <div className="h-48 animate-pulse rounded-2xl bg-surface" />
     </div>
   )
 }
@@ -211,11 +211,11 @@ export default function TecnicoDetalle() {
 
   if (error || !tecnico) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-7">
         <EnlaceVolver />
         <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
+            <span className="inline-flex shrink-0 items-center justify-center text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -230,7 +230,7 @@ export default function TecnicoDetalle() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -271,20 +271,20 @@ export default function TecnicoDetalle() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <EnlaceVolver />
         <button
           type="button"
           onClick={recargar}
-          className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+          className="inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
         >
           <IconRefresh className="h-4 w-4" />
           Recargar
         </button>
       </div>
 
-      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl bg-surface p-6 shadow-none">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-primary-soft text-xl font-semibold text-link">
             {obtenerIniciales(tecnico.usuario.nombre)}
@@ -302,7 +302,7 @@ export default function TecnicoDetalle() {
           </div>
         </div>
 
-        <dl className="mt-6 grid gap-4 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-6 grid gap-4 pt-6 sm:grid-cols-2 lg:grid-cols-3">
           <Dato etiqueta="Oficio">
             {tecnico.oficio ? capitalizar(tecnico.oficio) : '—'}
           </Dato>
@@ -340,8 +340,8 @@ export default function TecnicoDetalle() {
         </dl>
       </section>
 
-      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
-        <h3 className="font-display text-base font-semibold text-ink">Acciones</h3>
+      <section className="px-1 py-2">
+        <h3 className="font-display text-base font-semibold text-ink">Decisión de verificación</h3>
         {errorAccion && (
           <p className="mt-3 rounded-md border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-text">
             {errorAccion}
@@ -366,7 +366,7 @@ export default function TecnicoDetalle() {
                       aprobarTecnico(tecnico.id, texto || undefined),
                   })
                 }
-                className="inline-flex items-center gap-2 rounded-md bg-success px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-success/90 active:translate-y-px"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-strong px-5 py-3 text-sm font-semibold text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-primary-hover active:translate-y-px"
               >
                 <IconCheckCircle className="h-4 w-4" />
                 Aprobar
@@ -387,7 +387,7 @@ export default function TecnicoDetalle() {
                       observarTecnico(tecnico.id, texto || undefined),
                   })
                 }
-                className="inline-flex items-center gap-2 rounded-md bg-warning px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-warning/90 active:translate-y-px"
+                className="inline-flex items-center gap-2 rounded-full bg-warning-soft px-5 py-3 text-sm font-medium text-warning-text transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-warning/20 active:translate-y-px"
               >
                 <IconAlertTriangle className="h-4 w-4" />
                 Observar
@@ -408,7 +408,7 @@ export default function TecnicoDetalle() {
                       rechazarTecnico(tecnico.id, texto || undefined),
                   })
                 }
-                className="inline-flex items-center gap-2 rounded-md bg-danger px-4 py-2 text-sm font-medium text-white transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/90 active:translate-y-px"
+                className="inline-flex items-center gap-2 rounded-full bg-danger-soft px-5 py-3 text-sm font-medium text-danger-text transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-danger/20 active:translate-y-px"
               >
                 <IconBan className="h-4 w-4" />
                 Rechazar
@@ -466,7 +466,7 @@ export default function TecnicoDetalle() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl bg-surface p-6 shadow-none">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-base font-semibold text-ink">
             Documentos ({tecnico.documentos.length})
@@ -492,7 +492,7 @@ export default function TecnicoDetalle() {
               return (
                 <article
                   key={documento.id}
-                  className="flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-sm"
+                  className="flex flex-col overflow-hidden rounded-2xl bg-surface shadow-none"
                 >
                   <button
                     type="button"
@@ -532,7 +532,7 @@ export default function TecnicoDetalle() {
                       <button
                         type="button"
                         onClick={() => setVisor(documento)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-transparent bg-surface px-2.5 py-1.5 text-xs font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
                       >
                         <IconEye className="h-3.5 w-3.5" />
                         Ver
@@ -581,7 +581,7 @@ export default function TecnicoDetalle() {
         )}
       </section>
 
-      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl bg-surface p-6 shadow-none">
         <h3 className="font-display text-base font-semibold text-ink">Historial</h3>
         {tecnico.historial.length === 0 ? (
           <p className="mt-5 rounded-md bg-surface-2 px-4 py-3 text-center text-sm text-ink-2">
@@ -591,7 +591,7 @@ export default function TecnicoDetalle() {
           <ol className="mt-5 space-y-4">
             {tecnico.historial.map((entrada) => (
               <li key={entrada.id} className="flex gap-3">
-                <span className="mt-1.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-surface-2 text-ink-3">
+                <span className="inline-flex shrink-0 items-center justify-center text-link">
                   <IconUsers className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1 border-b border-line pb-4">
@@ -657,7 +657,7 @@ export default function TecnicoDetalle() {
                 href={visor.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+                className="inline-flex items-center gap-2 border border-transparent bg-surface px-4 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
               >
                 <IconEye className="h-4 w-4" />
                 Abrir en nueva pestaña

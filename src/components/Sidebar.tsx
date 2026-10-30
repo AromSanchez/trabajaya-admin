@@ -2,6 +2,8 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { NAV_ITEMS, obtenerIniciales } from './navigation'
 import { IconChevronsLeft } from './icons'
+import Brand from './Brand'
+import { X } from 'lucide-react'
 
 interface SidebarProps {
   colapsado: boolean
@@ -31,27 +33,23 @@ export default function Sidebar({
 
     <aside
       aria-label="Navegación principal"
-      className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-line bg-sidebar transition-[width,translate] duration-[var(--duration)] ease-[var(--ease)] ${
+      className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar transition-[width,translate] duration-[var(--duration)] ease-[var(--ease)] ${
         colapsado ? 'lg:w-20' : 'lg:w-64'
       } ${movilAbierto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
     >
-      <div className="flex h-16 items-center gap-3 border-b border-line px-4">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary-strong text-sm font-bold text-white">
-          TY
-        </div>
-        <div className={`min-w-0 ${colapsado ? 'lg:hidden' : ''}`}>
-          <p className="truncate font-display text-sm font-semibold text-ink">TrabajaYa</p>
-          <p className="truncate text-xs text-ink-2">Panel de administración</p>
-        </div>
+      <div className="flex h-24 shrink-0 items-center justify-between gap-1 px-4">
+        <div className={colapsado ? 'lg:hidden' : ''}><Brand /></div>
+        {colapsado && <div className="hidden lg:block"><Brand compacto /></div>}
+        <button type="button" onClick={onCerrarMovil} aria-label="Cerrar menú" className="grid size-9 shrink-0 place-items-center rounded-full text-ink-3 hover:bg-canvas lg:hidden"><X className="size-4" /></button>
       </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 space-y-1.5 overflow-y-auto px-4 py-6">
           <p
             className={`px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-ink-3 ${
               colapsado ? 'lg:hidden' : ''
             }`}
           >
-            Menú
+            Espacio de trabajo
           </p>
 
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
@@ -61,9 +59,9 @@ export default function Sidebar({
               onClick={onCerrarMovil}
               title={colapsado ? label : undefined}
               className={({ isActive }) =>
-                `group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition duration-[var(--duration)] ease-[var(--ease)] ${
+                `group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition duration-[var(--duration)] ease-[var(--ease)] ${
                   isActive
-                    ? "bg-primary-soft text-link before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-primary before:content-['']"
+                    ? 'bg-primary-soft text-link'
                     : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
                 } ${colapsado ? 'lg:justify-center lg:px-0' : ''}`
               }
@@ -76,9 +74,9 @@ export default function Sidebar({
           ))}
         </nav>
 
-        <div className="border-t border-line p-3">
+        <div className="p-4">
           <div
-            className={`flex items-center gap-3 rounded-md bg-surface-2 px-3 py-2.5 ${
+            className={`flex items-center gap-3 px-3 py-3 ${
               colapsado ? 'lg:justify-center lg:px-0' : ''
             }`}
           >

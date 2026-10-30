@@ -45,20 +45,20 @@ export default function ReporteDetalle() {
 
   if (cargando) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-7">
         <div className="h-8 w-44 animate-pulse bg-line" />
-        <div className="h-64 animate-pulse rounded-lg border border-line bg-surface" />
+        <div className="h-64 animate-pulse rounded-2xl bg-surface" />
       </div>
     )
   }
 
   if (error || !reporte) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-7">
         <EnlaceVolver />
         <section className="flex flex-col items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger-soft p-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-danger/10 text-danger-text">
+            <span className="inline-flex shrink-0 items-center justify-center text-danger-text">
               <IconAlertTriangle className="h-5 w-5" />
             </span>
             <div>
@@ -73,7 +73,7 @@ export default function ReporteDetalle() {
           <button
             type="button"
             onClick={recargar}
-            className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
+            className="inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-2 text-sm font-medium text-ink transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2"
           >
             <IconRefresh className="h-4 w-4" />
             Reintentar
@@ -133,23 +133,23 @@ export default function ReporteDetalle() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <EnlaceVolver />
         <button
           type="button"
           onClick={recargar}
-          className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+          className="inline-flex items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
         >
           <IconRefresh className="h-4 w-4" />
           Recargar
         </button>
       </div>
 
-      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl bg-surface p-6 shadow-none">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-primary-soft text-link">
+            <span className="inline-flex shrink-0 items-center justify-center text-link">
               <IconFlag className="h-6 w-6" />
             </span>
             <div>
@@ -169,14 +169,14 @@ export default function ReporteDetalle() {
           {reporte.objetivo.tipo === 'tecnico' && (
             <Link
               to={`/tecnicos/${reporte.objetivo.id}`}
-              className="inline-flex shrink-0 items-center gap-2 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+              className="inline-flex shrink-0 items-center gap-2 rounded-md border border-transparent bg-surface px-3 py-1.5 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
             >
               Ver técnico
             </Link>
           )}
         </div>
 
-        <dl className="mt-6 grid gap-4 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-6 grid gap-4 pt-6 sm:grid-cols-2 lg:grid-cols-3">
           <Dato etiqueta="Categoría">
             {etiquetaCategoria(reporte.categoria)}
           </Dato>
@@ -201,7 +201,7 @@ export default function ReporteDetalle() {
           </Dato>
         </dl>
 
-        <div className="mt-5 border-t border-line pt-5">
+        <div className="mt-5 pt-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
             Comentario del reporte
           </p>
@@ -211,7 +211,7 @@ export default function ReporteDetalle() {
         </div>
 
         {reporte.objetivo.tipo === 'resena' && (
-          <div className="mt-5 rounded-md border border-line bg-surface-2 p-4">
+          <div className="mt-5 rounded-md border border-transparent bg-surface-2 p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">
               Reseña reportada
             </p>
@@ -225,7 +225,7 @@ export default function ReporteDetalle() {
                 {reporte.objetivo.comentario}
               </p>
             )}
-            <div className="mt-3 border-t border-line pt-3">
+            <div className="mt-3 pt-4">
               {resenaOculta ? (
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-success">
                   <IconEyeOff className="h-4 w-4" />
@@ -249,7 +249,7 @@ export default function ReporteDetalle() {
         )}
       </section>
 
-      <section className="rounded-lg border border-line bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl bg-surface p-6 shadow-none">
         <h3 className="font-display text-base font-semibold text-ink">
           Resolución
         </h3>
@@ -302,7 +302,7 @@ export default function ReporteDetalle() {
                 value={nota}
                 onChange={(evento) => setNota(evento.target.value)}
                 placeholder="Explica cómo se resolvió o por qué se descarta el reporte"
-                className="w-full resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+                className="w-full resize-none rounded-xl border border-transparent bg-surface-2 px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
               />
               <p className="mt-1 text-right text-xs tabular-nums text-ink-3">
                 {nota.length}/500
@@ -368,7 +368,7 @@ export default function ReporteDetalle() {
               value={motivoOcultar}
               onChange={(evento) => setMotivoOcultar(evento.target.value)}
               placeholder="Explica por qué se oculta la reseña"
-              className="w-full resize-none rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
+              className="w-full resize-none rounded-xl border border-transparent bg-surface-2 px-3 py-2 text-sm text-ink outline-none transition duration-[var(--duration-fast)] ease-[var(--ease)] placeholder:text-ink-3 focus:border-primary"
             />
             <p className="mt-1 text-right text-xs tabular-nums text-ink-3">
               {motivoOcultar.length}/500
@@ -381,7 +381,7 @@ export default function ReporteDetalle() {
             <button
               type="button"
               onClick={() => setMostrarOcultar(false)}
-              className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
+              className="rounded-md border border-transparent bg-surface px-4 py-2 text-sm font-medium text-ink-2 transition duration-[var(--duration-fast)] ease-[var(--ease)] hover:bg-surface-2 hover:text-ink"
             >
               Cancelar
             </button>
