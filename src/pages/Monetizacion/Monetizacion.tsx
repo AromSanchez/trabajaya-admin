@@ -1317,19 +1317,29 @@ export default function Monetizacion() {
             <MetricGroup columnas={4} etiqueta="Adopción de monetización">
               <TarjetaMetricaMini
                 label="Técnicos con créditos"
-                valor={String(metricas.resumen.totalConCreditos)}
+                valor={String(resumen?.tecnicos.creditos ?? metricas.resumen.totalConCreditos)}
               />
               <TarjetaMetricaMini
                 label="Con mensualidad"
-                valor={String(metricas.resumen.totalConMensualidad)}
+                valor={String(resumen?.tecnicos.mensualidad ?? metricas.resumen.totalConMensualidad)}
               />
               <TarjetaMetricaMini
                 label="Sin modelo"
-                valor={String(metricas.resumen.totalSinModelo)}
+                valor={String(
+                  resumen
+                    ? Math.max(resumen.tecnicos.total - resumen.tecnicos.conModelo, 0)
+                    : metricas.resumen.totalSinModelo,
+                )}
               />
               <TarjetaMetricaMini
                 label="Porcentaje monetizado"
-                valor={`${metricas.resumen.porcentajeMonetizados.toFixed(1)}%`}
+                valor={
+                  resumen
+                    ? `${((resumen.tecnicos.total > 0
+                        ? (resumen.tecnicos.conModelo / resumen.tecnicos.total) * 100
+                        : 0)).toFixed(1)}%`
+                    : `${metricas.resumen.porcentajeMonetizados.toFixed(1)}%`
+                }
               />
             </MetricGroup>
 
