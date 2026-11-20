@@ -349,7 +349,6 @@ function ColaRevision({ metricas }: { metricas: MetricasDashboard }) {
     <Panel
       titulo="Cola de revisión"
       descripcion="Los más antiguos primero"
-      className="xl:col-span-2"
       accion={
         <Link
           to="/tecnicos"
@@ -399,93 +398,6 @@ function ColaRevision({ metricas }: { metricas: MetricasDashboard }) {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/* Tiempo medio de verificación                                        */
-/* ------------------------------------------------------------------ */
-
-function TiempoVerificacion({ metricas }: { metricas: MetricasDashboard }) {
-  const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
-
-  if (promedioHoras === null) {
-    return (
-      <Panel
-        titulo="Tiempo medio de verificación"
-        descripcion="Desde el registro hasta la decisión"
-      >
-        <p className="rounded-md bg-surface-2 px-4 py-8 text-center text-sm text-ink-2">
-          Aún no hay suficientes decisiones para calcular el promedio.
-        </p>
-      </Panel>
-    )
-  }
-
-  const escala = 72
-  const posicion = Math.min(100, Math.max(0, (promedioHoras / escala) * 100))
-  const mejora = vsMesPasadoPorcentaje !== null && vsMesPasadoPorcentaje < 0
-
-  return (
-    <Panel
-      titulo="Tiempo medio de verificación"
-      descripcion="Desde el registro hasta la decisión"
-    >
-      <p className="font-display text-4xl font-semibold leading-none tabular-nums text-ink">
-        {Math.round(promedioHoras)}
-        <span className="ml-1.5 text-lg font-medium text-ink-3">horas</span>
-      </p>
-
-      {vsMesPasadoPorcentaje !== null && (
-        <p
-          className={`mt-2 text-sm font-medium ${
-            mejora ? 'text-success-text' : 'text-danger-text'
-          }`}
-        >
-          {mejora ? '↓' : '↑'} {Math.abs(vsMesPasadoPorcentaje)}% frente al mes
-          pasado
-        </p>
-      )}
-
-      <div className="mt-6">
-        <div className="relative h-2 w-full rounded-full bg-surface-2">
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-primary"
-            style={{ width: `${posicion}%` }}
-          />
-          <span
-            className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-primary shadow-none"
-            style={{ left: `${posicion}%` }}
-            aria-hidden="true"
-          />
-        </div>
-        <div className="mt-2 flex justify-between text-xs tabular-nums text-ink-3">
-          <span>0 h</span>
-          <span>24 h</span>
-          <span>48 h</span>
-          <span>72 h</span>
-        </div>
-      </div>
-
-      <p
-        className={`mt-5 flex items-start gap-2 rounded-md px-4 py-3 text-sm ${
-          mejora
-            ? 'bg-success-soft text-success-text'
-            : 'bg-warning-soft text-warning-text'
-        }`}
-      >
-        {mejora ? (
-          <>
-            <IconClock className="mt-0.5 h-4 w-4 shrink-0" />
-            El tiempo de verificación bajó respecto al mes pasado.
-          </>
-        ) : (
-          <>
-            <IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            El tiempo de verificación subió respecto al mes pasado.
-          </>
-        )}
-      </p>
-    </Panel>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /* Error                                                               */
@@ -757,10 +669,9 @@ export default function Dashboard() {
         </Panel>
       </section>
 
-      {/* Cola + tiempo */}
-      <section className="panel-collection grid gap-4 xl:grid-cols-3">
+      {/* Cola */}
+      <section className="panel-collection grid gap-4">
         <ColaRevision metricas={metricas} />
-        <TiempoVerificacion metricas={metricas} />
       </section>
 
       {/* Métricas de evolución: técnicos, servicios/clientes y monetización */}
