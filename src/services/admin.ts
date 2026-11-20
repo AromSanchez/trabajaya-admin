@@ -380,6 +380,8 @@ export interface MetricasDashboard {
   tecnicosPorOficio: { total: number; oficios: OficioConteo[] }
   tiempoVerificacion: {
     promedioHoras: number | null
+    promedioMesActualHoras: number | null
+    promedioMesPasadoHoras: number | null
     vsMesPasadoPorcentaje: number | null
   }
   colaRevision: { tecnicos: ColaRevisionItem[] }

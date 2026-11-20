@@ -586,7 +586,12 @@ function SubseccionTecnicos({
         }))
 
   const hayCancela = serieCancela.some((p) => p.tardias > 0)
-  const { promedioHoras, vsMesPasadoPorcentaje } = metricas.tiempoVerificacion
+  const {
+    promedioHoras,
+    promedioMesActualHoras,
+    promedioMesPasadoHoras,
+    vsMesPasadoPorcentaje,
+  } = metricas.tiempoVerificacion
 
   const descripcionCancela = serieSemanal
     ? `Por semana · ${etiquetaRango}`
@@ -638,6 +643,10 @@ function SubseccionTecnicos({
                   </p>
                 )}
                 <p className="mt-3 text-xs leading-relaxed text-ink-3">
+                  Últ. 30 días: {promedioMesActualHoras !== null ? `${Math.round(promedioMesActualHoras)} h` : '—'} · 30 días previos:{' '}
+                  {promedioMesPasadoHoras !== null ? `${Math.round(promedioMesPasadoHoras)} h` : '—'}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-ink-3">
                   Negativo (↓) es favorable: se verificó más rápido que el mes
                   pasado.
                 </p>
