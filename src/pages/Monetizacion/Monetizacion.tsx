@@ -633,9 +633,13 @@ export default function Monetizacion() {
   }
 
   const descripcionTecnicos = hayFiltrosTecnicos
-    ? tipoSel !== 'todos'
+    ? tipoSel === 'creditos' || tipoSel === 'mensualidad'
       ? ` en modelo «${MODELO_INFO[tipoSel].label}»`
-      : ''
+      : tipoSel === 'con_modelo'
+        ? ' con modelo activo'
+        : tipoSel === 'sin_modelo'
+          ? ' sin modelo'
+          : ''
     : ''
 
   const descripcionTrans = hayFiltrosTrans
