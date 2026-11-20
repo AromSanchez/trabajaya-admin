@@ -175,7 +175,39 @@ function aFechaSegura(valor: unknown): Date | null {
 
 function formatearFechaSerie(valor: unknown): string {
   const fecha = aFechaSegura(valor)
-  return fecha ? formatoFechaCorta.format(fecha).replace('.', '') : '—'
+  return fecha ? formatoFechaCorta.format(fecha).replace('.', '') : '-'
+}
+
+function hoyPeruISO(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Lima',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+}
+
+function formatearFechaCortaPeru(fecha: string): string {
+  const valor = aFechaSegura(`${fecha}T00:00:00-05:00`)
+  if (!valor) return fecha
+  return valor.toLocaleDateString('es-PE', {
+    timeZone: 'America/Lima',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).replace('.', '')
+}
+
+function formatDelta(valor: number): string {
+  if (valor > 0) return `+${valor}`
+  return String(valor)
+}
+
+function formatDeltaMoney(valor: number): string {
+  const texto = formatMoney(Math.abs(valor))
+  if (valor > 0) return `+${texto}`
+  if (valor < 0) return `-${texto}`
+  return texto
 }
 
 function InfoTipo({ info }: { info: TipoInfo }) {
@@ -400,6 +432,7 @@ export default function Monetizacion() {
 
   const [mesInicio, setMesInicio] = useState<string>(restarMeses(mesActualISO(), 2))
   const [mesFin, setMesFin] = useState<string>(mesActualISO())
+  const [fechaDia, setFechaDia] = useState<string>(hoyPeruISO())
   const actualizarRango = useCallback((inicio: string, fin: string) => {
     setMesInicio(inicio)
     setMesFin(fin)
@@ -412,6 +445,7 @@ export default function Monetizacion() {
         semanas: 8,
         mes: mesFin,
         meses,
+        fecha: fechaDia,
       })
 
       setMetricas(resultado)
@@ -420,7 +454,7 @@ export default function Monetizacion() {
     } finally {
       setCargandoMetricas(false)
     }
-  }, [mesInicio, mesFin])
+  }, [mesInicio, mesFin, fechaDia])
 
   useEffect(() => {
     const temporizador = window.setTimeout(() => {
@@ -1154,7 +1188,7 @@ export default function Monetizacion() {
         aria-label="Métricas de monetización"
         className="space-y-5"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="font-display text-base font-semibold text-ink">
               Métricas de monetización
@@ -1163,12 +1197,86 @@ export default function Monetizacion() {
               Evolución de ingresos, modelos activos y adopción de monetización.
             </p>
           </div>
-          <SelectorRangoMeses
-            mesInicio={mesInicio}
-            mesFin={mesFin}
-            onChange={actualizarRango}
-          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div>
+              <label htmlFor="fecha-monetizacion" className="mb-1 block text-sm font-medium text-ink-3">
+                Día (Perú)
+              </label>
+              <Input
+                id="fecha-monetizacion"
+                type="date"
+                value={fechaDia}
+                onChange={(e) => {
+                  if (e.target.value) setFechaDia(e.target.value)
+                }}
+                className="h-10 sm:w-44"
+              />
+            </div>
+            <SelectorRangoMeses
+              mesInicio={mesInicio}
+              mesFin={mesFin}
+              onChange={actualizarRango}
+            />
+          </div>
         </div>
+
+        {metricas?.resumenDia ? (
+          <section className="rounded-2xl border border-line bg-surface p-4 space-y-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 className="font-display text-sm font-semibold text-ink">
+                Resumen del día · {formatearFechaCortaPeru(metricas.resumenDia.fecha)}
+              </h3>
+              <p className="text-xs text-ink-3">
+                Comparado con {formatearFechaCortaPeru(metricas.resumenDia.comparacionDiaAnterior.fecha)} ({metricas.resumenDia.zonaHoraria})
+              </p>
+            </div>
+            <MetricGroup columnas={4} etiqueta="Indicadores del día">
+              <TarjetaMetricaMini
+                label="Ingresos del día"
+                valor={formatMoney(metricas.resumenDia.ingresos.total)}
+              />
+              <TarjetaMetricaMini
+                label="Servicios creados"
+                valor={String(metricas.resumenDia.servicios.creados.total)}
+              />
+              <TarjetaMetricaMini
+                label="Servicios completados"
+                valor={String(metricas.resumenDia.servicios.completados)}
+              />
+              <TarjetaMetricaMini
+                label="Reportes / cancel. tardías"
+                valor={`${metricas.resumenDia.reportes.creados} / ${metricas.resumenDia.cancelacionesTardias.total}`}
+              />
+            </MetricGroup>
+            <MetricGroup columnas={4} etiqueta="Desglose e ingresos del día">
+              <TarjetaMetricaMini
+                label="Técnicos registrados / verificados"
+                valor={`${metricas.resumenDia.tecnicos.registrados} / ${metricas.resumenDia.tecnicos.verificados}`}
+              />
+              <TarjetaMetricaMini
+                label="Créditos / mensualidad / comisiones"
+                valor={`${formatMoney(metricas.resumenDia.ingresos.creditos)} · ${formatMoney(metricas.resumenDia.ingresos.mensualidad)} · ${formatMoney(metricas.resumenDia.ingresos.comisiones)}`}
+              />
+              <TarjetaMetricaMini
+                label="Transacciones / créditos vendidos"
+                valor={`${metricas.resumenDia.ingresos.transacciones} / ${metricas.resumenDia.ingresos.creditosVendidos}`}
+              />
+              <TarjetaMetricaMini
+                label="Variación vs día anterior"
+                valor={formatDeltaMoney(metricas.resumenDia.comparacionDiaAnterior.ingresos.total)}
+              />
+            </MetricGroup>
+            <div className="grid gap-2 text-xs text-ink-2 sm:grid-cols-2 lg:grid-cols-4">
+              <p>Ingresos créditos: {formatDeltaMoney(metricas.resumenDia.comparacionDiaAnterior.ingresos.creditos)}</p>
+              <p>Ingresos mensualidad: {formatDeltaMoney(metricas.resumenDia.comparacionDiaAnterior.ingresos.mensualidad)}</p>
+              <p>Ingresos comisiones: {formatDeltaMoney(metricas.resumenDia.comparacionDiaAnterior.ingresos.comisiones)}</p>
+              <p>Técnicos reg./verif.: {formatDelta(metricas.resumenDia.comparacionDiaAnterior.tecnicos.registrados)} / {formatDelta(metricas.resumenDia.comparacionDiaAnterior.tecnicos.verificados)}</p>
+              <p>Servicios creados/completados: {formatDelta(metricas.resumenDia.comparacionDiaAnterior.servicios.creados)} / {formatDelta(metricas.resumenDia.comparacionDiaAnterior.servicios.completados)}</p>
+              <p>Reportes: {formatDelta(metricas.resumenDia.comparacionDiaAnterior.reportes.creados)}</p>
+              <p>Cancelaciones tardías: {formatDelta(metricas.resumenDia.comparacionDiaAnterior.cancelacionesTardias.total)}</p>
+            </div>
+          </section>
+        ) : null}
 
         {cargandoMetricas && !metricas ? (
           <MetricGroup columnas={4} etiqueta="Cargando indicadores de monetización">

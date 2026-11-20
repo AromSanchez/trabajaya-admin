@@ -717,6 +717,51 @@ export interface AdopcionSemana {
   conModeloActivoSemana: number
 }
 
+export interface ResumenDiaIngresosMonetizacion {
+  transacciones: number
+  creditos: number
+  mensualidad: number
+  comisiones: number
+  total: number
+  creditosVendidos: number
+}
+
+export interface ResumenDiaTecnicosMonetizacion {
+  registrados: number
+  verificados: number
+}
+
+export interface ResumenDiaServiciosMonetizacion {
+  creados: {
+    total: number
+    porEstado: Array<{ estado: string; total: number }>
+  }
+  completados: number
+}
+
+export interface ResumenDiaMonetizacion {
+  fecha: string
+  zonaHoraria: string
+  ingresos: ResumenDiaIngresosMonetizacion
+  tecnicos: ResumenDiaTecnicosMonetizacion
+  servicios: ResumenDiaServiciosMonetizacion
+  reportes: { creados: number }
+  cancelacionesTardias: { total: number }
+  comparacionDiaAnterior: {
+    fecha: string
+    ingresos: {
+      total: number
+      creditos: number
+      mensualidad: number
+      comisiones: number
+    }
+    tecnicos: { registrados: number; verificados: number }
+    servicios: { creados: number; completados: number }
+    reportes: { creados: number }
+    cancelacionesTardias: { total: number }
+  }
+}
+
 export interface MetricasMonetizacion {
   generadoEn: string
   modelosActivos: {
@@ -739,6 +784,7 @@ export interface MetricasMonetizacion {
     modeloMasElegido: 'creditos' | 'mensualidad' | null
     porcentajeMonetizados: number
   }
+  resumenDia?: ResumenDiaMonetizacion
 }
 
 interface MetricasMonetizacionResponse {
@@ -749,6 +795,7 @@ export interface ParametrosMetricasMonetizacion {
   semanas?: number
   meses?: number
   mes?: string
+  fecha?: string
 }
 
 export async function obtenerMetricasMonetizacion(
@@ -758,6 +805,7 @@ export async function obtenerMetricasMonetizacion(
   if (parametros.semanas) params.semanas = parametros.semanas
   if (parametros.meses) params.meses = parametros.meses
   if (parametros.mes) params.mes = parametros.mes
+  if (parametros.fecha) params.fecha = parametros.fecha
 
   const { data } = await api.get<MetricasMonetizacionResponse>(
     '/admin/metricas/monetizacion',
